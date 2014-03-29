@@ -1,6 +1,8 @@
 
 SUBDIRS = thrift uri
 
+CXXFLAGS = -g
+
 top_dir = ..
 AM_CPPFLAGS =   -I/usr/local/boost-1.50.0/include \
                 -I/usr/local/glog-0.3.3/include \

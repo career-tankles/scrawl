@@ -1,8 +1,12 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <glog/logging.h>
+#include <gflags/gflags.h>
 #include "message.h"
 #include "URI.h"
+
+DEFINE_string(default_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", "");
 
 namespace spider {
   namespace message {
@@ -89,6 +93,10 @@ int Website::httpRequest(http_request_t*& rqst, int& wait_ms) {
         l += sprintf(buf+l, "Host: %s\r\n", host_.c_str());
     else
         l += sprintf(buf+l, "Host: %s:%d\r\n", host_.c_str(), port_);
+
+    if( more_headers_.count("User-Agent") <= 0) {   // 没有指定UA，则使用默认UA
+        l += sprintf(buf+l, "User-Agent: %s\r\n", FLAGS_default_UserAgent.c_str());
+    }
     
     std::map<std::string, std::string>::iterator iter = more_headers_.begin();
     for(; iter!=more_headers_.end(); iter++) {
