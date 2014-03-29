@@ -13,6 +13,7 @@ public:
 
     int parse(std::string url) ;
 
+    inline bool isvalid() { return isvalid_; }
     inline std::string& url() { return url_; }
     inline std::string& host() { return host_; }
     inline std::string& path() { return path_; }
@@ -25,6 +26,7 @@ private:
     std::string host_;
     std::string path_;
     unsigned short port_;
+    bool isvalid_;
 };
 
 #endif

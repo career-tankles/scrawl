@@ -6,9 +6,9 @@
 #include "uri.h"
 
 URI::URI(std::string scheme, std::string host, std::string path, unsigned short port) 
-  : scheme_(scheme), host_(host), path_(path), port_(port)
+  : scheme_(scheme), host_(host), path_(path), port_(port), isvalid_(true)
 {
-    if(port == 0 || port == 80) {
+    if(port == 0) {
         url_ = scheme_ + "://" + host_ + path_;
     } else {
         char buf[10];
@@ -17,7 +17,9 @@ URI::URI(std::string scheme, std::string host, std::string path, unsigned short 
     }
 }
 
-URI::URI(std::string url) {
+URI::URI(std::string url) 
+  : isvalid_(false)
+{
     parse(url);
 }
 
@@ -32,6 +34,8 @@ int URI::parse(std::string url) {
     path_ = u.path().encoding();
     if(!u.query().empty())
         path_ += "?" + u.query().encoding();
+
+    isvalid_ = true;
 
     return 0;
 }
