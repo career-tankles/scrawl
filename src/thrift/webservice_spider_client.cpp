@@ -57,7 +57,16 @@ void load(std::string file, SpiderWebServiceClient& client) {
             if(*p == '\r' || *p == '\n'){
                 std::string url = std::string(begin, p-begin);
                 std::cout<<url<<std::endl;
-                client.submit_url(url);
+                static int i = 0;
+                if(i++ % 2 == 0)
+                {
+                    HttpRequest http_rqst;
+                    http_rqst.url = url;
+                    http_rqst.userdata = "USER-DATA:" + url;
+                    client.submit(http_rqst);
+                }
+                else
+                    client.submit_url(url);
                 while(p<buf+left) {
                     if(*p != '\r' && *p != '\n')
                         break;
