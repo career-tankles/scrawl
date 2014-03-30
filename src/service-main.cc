@@ -84,6 +84,8 @@ int main(int argc, char **argv) {
     // Initialize Google's logging library.
     google::InitGoogleLogging(argv[0]);
 
+    FLAGS_logtostderr = 1;
+
     boost::shared_ptr<SpiderResManager> spider(new SpiderResManager);
     threadpool threadpool;
     threadpool.create_thread(_spider_thread_(), (void*)&spider);

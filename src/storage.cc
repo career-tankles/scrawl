@@ -9,14 +9,7 @@
 #include <gflags/gflags.h>
 
 #include "storage.h"
-
-DEFINE_int32(STORE_threads, 5, "");
-DEFINE_int32(STORE_rslt_queue_size, 5000, "");
-DEFINE_int32(STORE_usleep, 10, "");
-DEFINE_int32(STORE_nores_usleep, 100, "");
-DEFINE_int32(STORE_file_max_num, 100, "");
-DEFINE_int64(STORE_file_max_size, 100*1024*1024, "");
-DEFINE_string(STORE_file_prefix, "/tmp/spider/data", "");
+#include "conf.h"
 
 namespace spider {
 namespace store {
@@ -264,7 +257,7 @@ public:
 
         data = std::string(buf, n) + result->http_page_data + "\n\n\n";
 
-        LOG(INFO)<<"STORAGE "<<result->url<<" pagelen="<<result->http_page_data_len<<" len="<<data.size();
+        LOG(INFO)<<"STORAGE http response "<<result->url<<" "<<(result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR")<<" pagelen="<<result->http_page_data_len<<" len="<<data.size();
 
         // 释放资源
         delete res; res = NULL;

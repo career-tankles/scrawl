@@ -5,8 +5,7 @@
 #include <gflags/gflags.h>
 #include "message.h"
 #include "URI.h"
-
-DEFINE_string(default_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", "");
+#include "conf.h"
 
 namespace spider {
   namespace message {
@@ -34,6 +33,8 @@ Website::Website() {
     host_ = "";
     port_ = 0;
     is_fetching_ = false;
+    dns_is_resolving_ = false;
+    dns_retry_count_ = 0;
 
     fetch_interval_ = 10; // 10s
     last_fetch_time_ = time(NULL) - fetch_interval_;
@@ -60,9 +61,7 @@ int Website::httpResult(http_result_t* result) {
 }
 
 int Website::httpRequest(http_request_t*& rqst, int& wait_ms) {
-    if(!rqst) {
-        rqst = new http_request_t;
-    }
+
     Res* res = NULL;
     int ret = res_list_.pop(res);
     if(ret != 0 || res == NULL) {
@@ -71,6 +70,9 @@ int Website::httpRequest(http_request_t*& rqst, int& wait_ms) {
 
     is_fetching_ = true;
 
+    if(!rqst) 
+        rqst = new http_request_t;
+    
     rqst->res = res;
 
     URI uri("http", host_, res->url, port_);

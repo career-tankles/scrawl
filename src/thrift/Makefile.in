@@ -35,7 +35,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = spider_webservice_client$(EXEEXT)
+noinst_PROGRAMS = client$(EXEEXT)
 subdir = src/thrift
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -54,11 +54,9 @@ am_libspider_webservice_a_OBJECTS = spider_constants.$(OBJEXT) \
 	spider_types.$(OBJEXT) SpiderWebService.$(OBJEXT)
 libspider_webservice_a_OBJECTS = $(am_libspider_webservice_a_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
-am_spider_webservice_client_OBJECTS =  \
-	webservice_spider_client.$(OBJEXT)
-spider_webservice_client_OBJECTS =  \
-	$(am_spider_webservice_client_OBJECTS)
-spider_webservice_client_DEPENDENCIES = libspider_webservice.a
+am_client_OBJECTS = webservice_spider_client.$(OBJEXT)
+client_OBJECTS = $(am_client_OBJECTS)
+client_DEPENDENCIES = libspider_webservice.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -67,10 +65,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libspider_webservice_a_SOURCES) \
-	$(spider_webservice_client_SOURCES)
-DIST_SOURCES = $(libspider_webservice_a_SOURCES) \
-	$(spider_webservice_client_SOURCES)
+SOURCES = $(libspider_webservice_a_SOURCES) $(client_SOURCES)
+DIST_SOURCES = $(libspider_webservice_a_SOURCES) $(client_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -158,8 +154,8 @@ AM_CPPFLAGS = -I/usr/local/thrift-0.9.1/include \
 
 noinst_LIBRARIES = libspider_webservice.a
 libspider_webservice_a_SOURCES = gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
-spider_webservice_client_SOURCES = webservice_spider_client.cpp
-spider_webservice_client_LDADD = libspider_webservice.a
+client_SOURCES = webservice_spider_client.cpp
+client_LDADD = libspider_webservice.a
 all: all-am
 
 .SUFFIXES:
@@ -203,9 +199,9 @@ libspider_webservice.a: $(libspider_webservice_a_OBJECTS) $(libspider_webservice
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-spider_webservice_client$(EXEEXT): $(spider_webservice_client_OBJECTS) $(spider_webservice_client_DEPENDENCIES) 
-	@rm -f spider_webservice_client$(EXEEXT)
-	$(CXXLINK) $(spider_webservice_client_LDFLAGS) $(spider_webservice_client_OBJECTS) $(spider_webservice_client_LDADD) $(LIBS)
+client$(EXEEXT): $(client_OBJECTS) $(client_DEPENDENCIES) 
+	@rm -f client$(EXEEXT)
+	$(CXXLINK) $(client_LDFLAGS) $(client_OBJECTS) $(client_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

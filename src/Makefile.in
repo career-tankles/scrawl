@@ -35,7 +35,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = thrift_spider$(EXEEXT)
+noinst_PROGRAMS = service_spider$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -52,12 +52,13 @@ libSpiderResManager_a_AR = $(AR) $(ARFLAGS)
 libSpiderResManager_a_LIBADD =
 am_libSpiderResManager_a_OBJECTS = SpiderResManager.$(OBJEXT) \
 	message.$(OBJEXT) dns.$(OBJEXT) download.$(OBJEXT) \
-	storage.$(OBJEXT) TimeWait.$(OBJEXT) message.$(OBJEXT)
+	storage.$(OBJEXT) TimeWait.$(OBJEXT) message.$(OBJEXT) \
+	conf.$(OBJEXT)
 libSpiderResManager_a_OBJECTS = $(am_libSpiderResManager_a_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
-am_thrift_spider_OBJECTS = service-main.$(OBJEXT)
-thrift_spider_OBJECTS = $(am_thrift_spider_OBJECTS)
-thrift_spider_DEPENDENCIES = libSpiderResManager.a \
+am_service_spider_OBJECTS = main.$(OBJEXT)
+service_spider_OBJECTS = $(am_service_spider_OBJECTS)
+service_spider_DEPENDENCIES = libSpiderResManager.a \
 	thrift/libspider_webservice.a uri/liburi.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -67,9 +68,9 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libSpiderResManager_a_SOURCES) $(thrift_spider_SOURCES)
+SOURCES = $(libSpiderResManager_a_SOURCES) $(service_spider_SOURCES)
 DIST_SOURCES = $(libSpiderResManager_a_SOURCES) \
-	$(thrift_spider_SOURCES)
+	$(service_spider_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -180,9 +181,9 @@ AM_CPPFLAGS = -I/usr/local/boost-1.50.0/include \
                 -I./thrift/gen-cpp
 
 noinst_LIBRARIES = libSpiderResManager.a
-libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc
-thrift_spider_SOURCES = service-main.cc
-thrift_spider_LDADD = libSpiderResManager.a thrift/libspider_webservice.a uri/liburi.a
+libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc conf.cc
+service_spider_SOURCES = main.cc
+service_spider_LDADD = libSpiderResManager.a thrift/libspider_webservice.a uri/liburi.a
 all: all-recursive
 
 .SUFFIXES:
@@ -226,9 +227,9 @@ libSpiderResManager.a: $(libSpiderResManager_a_OBJECTS) $(libSpiderResManager_a_
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-thrift_spider$(EXEEXT): $(thrift_spider_OBJECTS) $(thrift_spider_DEPENDENCIES) 
-	@rm -f thrift_spider$(EXEEXT)
-	$(CXXLINK) $(thrift_spider_LDFLAGS) $(thrift_spider_OBJECTS) $(thrift_spider_LDADD) $(LIBS)
+service_spider$(EXEEXT): $(service_spider_OBJECTS) $(service_spider_DEPENDENCIES) 
+	@rm -f service_spider$(EXEEXT)
+	$(CXXLINK) $(service_spider_LDFLAGS) $(service_spider_OBJECTS) $(service_spider_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -238,10 +239,11 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SpiderResManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TimeWait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dns.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/download.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/message.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/service-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/storage.Po@am__quote@
 
 .cc.o:

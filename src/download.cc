@@ -3,19 +3,10 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
+#include "conf.h"
 #include "conn.h"
 #include "download.h"
 #include "libevent_wrapper.h"
-
-DEFINE_int32(DOWN_threads, 1, "");
-DEFINE_int32(DOWN_rqst_queue_size, 1000, "");
-DEFINE_int32(DOWN_rslt_queue_size, 5000, "");
-DEFINE_int32(DOWN_http_page_maxsize, 0x100000, "");
-DEFINE_int32(DOWN_usleep, 10, "");
-DEFINE_int32(DOWN_nores_usleep, 100, "");
-DEFINE_int32(DOWN_clock_interval_sec, 10, "");
-DEFINE_int32(DOWN_clock_interval_us, 0, "");
-
 
 namespace spider {
 namespace download {
@@ -61,46 +52,28 @@ public:
             conn_connect(c);
 
             LOG(INFO)<<"DOWNLOAD start "<<rqst->url<<" "<<rqst->ip.c_str()<<":"<<rqst->port<<" fd="<<c->sock_fd_;
-            my_add_event(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST, _download_page_, (void*)c);
+            my_add_event(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, (void*)c);
+            //struct timeval tv = my_timeval(FLAGS_DOWN_write_timeout_ms/1000, (FLAGS_DOWN_write_timeout_ms%1000)*1000);
+            //my_add_event_timeout(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
             usleep(FLAGS_DOWN_usleep);
         }
         LOG(INFO)<<"DOWNLOAD stop one thread: "<<pthread_self();
         return;
     }
 
-    static void _result_handler_(connection* c) {
-        // 根据conn，构造一个 http_result_t
-        http_request_t* rqst = (http_request_t*)c->user_data;
-        http_result_t* result = new http_result_t;
-        assert(result);
-        result->rqst = rqst;
-        result->url = rqst->url;
-        result->submit_time = rqst->submit_time;
-        result->write_end_time = c->write_end_time;
-        result->recv_begin_time = c->recv_begin_time;
-        result->recv_end_time = c->recv_end_time;
-        result->scrawltime = "todo";
-        if(c->conn_stat_ == CONN_STAT_FINISH) {
-            result->state = http_result_t::HTTP_PAGE_OK;
-            result->http_page_data = std::string(c->recv_buf_, c->recv_buf_len_);
-            result->http_page_data_len = c->recv_buf_len_;
-        } else {
-            result->state = http_result_t::HTTP_PAGE_ERROR;
-            result->http_page_data = "";
-            result->http_page_data_len = 0;
-        }
-
-        result->fetch_ip = rqst->ip;
-
-        LOG(INFO)<<"DOWNLOAD download finished "<<result->url<<" "<<result->http_page_data_len<<" "<<(result->recv_end_time-result->submit_time);
-        Downloader* downloader = (Downloader*)c->user_data2 ;
-        downloader->http_result_.push(result);
-    }
-
     // TODO: 超时机制
-    static void _download_page_(int sock, short event, void* arg) {
+    static void _download_page_(int sock, short events, void* arg) {
         conn* c = (conn*)arg;
         _Downloader_* self = (_Downloader_*)c->user_data3;
+
+        if(events == EV_TIMEOUT) {              // 超时
+            c->conn_stat_ = CONN_STAT_TIMEOUT;
+            c->err_code_ = errno;
+            LOG(INFO)<<"DOWNLOAD timeout fd="<<c->sock_fd_;
+            goto handle_result;
+        }
+
+        assert(events & (EV_READ|EV_WRITE));
     
         if(c->conn_stat_ == CONN_STAT_INIT || c->conn_stat_ == CONN_STAT_CONNECTING) {
             c->conn_stat_ = CONN_STAT_WRITING;
@@ -126,10 +99,10 @@ public:
                 assert(c->send_buf_left_ == 0);
                 // send finished
                 c->conn_stat_ = CONN_STAT_READING;
-                event_del(&c->fd_event);
-                event_set(&c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST, _download_page_, c);
-                event_base_set(self->base_, &c->fd_event);
-                event_add( &c->fd_event, NULL);
+                my_event_del(&c->fd_event);
+                my_add_event(self->base_, &c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST|EV_TIMEOUT, _download_page_, (void*)c);
+                //struct timeval tv = my_timeval(FLAGS_DOWN_read_timeout_ms/1000, (FLAGS_DOWN_read_timeout_ms%1000)*1000);
+                //my_add_event_timeout(self->base_, &c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
                 c->write_end_time = time(NULL);
             } 
             return ;
@@ -182,6 +155,35 @@ public:
         conn_close(c) ;
         conn_free(c);
         return ;
+    }
+
+    static void _result_handler_(connection* c) {
+        // 根据conn，构造一个 http_result_t
+        http_request_t* rqst = (http_request_t*)c->user_data;
+        http_result_t* result = new http_result_t;
+        assert(result);
+        result->rqst = rqst;
+        result->url = rqst->url;
+        result->submit_time = rqst->submit_time;
+        result->write_end_time = c->write_end_time;
+        result->recv_begin_time = c->recv_begin_time;
+        result->recv_end_time = c->recv_end_time;
+        result->scrawltime = "todo";
+        if(c->conn_stat_ == CONN_STAT_FINISH) {
+            result->state = http_result_t::HTTP_PAGE_OK;
+            result->http_page_data = std::string(c->recv_buf_, c->recv_buf_len_);
+            result->http_page_data_len = c->recv_buf_len_;
+        } else {
+            result->state = http_result_t::HTTP_PAGE_ERROR;
+            result->http_page_data = "";
+            result->http_page_data_len = 0;
+        }
+
+        result->fetch_ip = rqst->ip;
+
+        LOG(INFO)<<"DOWNLOAD download finished "<<result->url<<" "<<result->http_page_data_len<<" "<<(result->recv_end_time-result->submit_time);
+        Downloader* downloader = (Downloader*)c->user_data2 ;
+        downloader->http_result_.push(result);
     }
 
 private:

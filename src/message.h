@@ -16,6 +16,8 @@ struct DnsEntity {
             DNS_STATE_INIT = -1,
             DNS_STATE_OK = 0,
             DNS_STATE_ERROR = 1,
+            DNS_STATE_ERROR_RETRY = 2,
+            DNS_STATE_UPDATE = 3,
     };
     DNS_STATE state;                // 状态
     std::string host;               // 主机名
@@ -115,6 +117,10 @@ struct http_result_t {
     }
 };
 
+struct WebsiteConfig {
+
+};
+
 class Website {
 
 public:
@@ -130,6 +136,9 @@ public:
 
     void addHeader(std::string& key, std::string& value);
 
+    int dnsRequest(std::string& host);
+    int dnsResult(DnsEntity* dns);
+
     int httpRequest(http_request_t*& rqst, int& wait_ms); // 等待wait_sec后，发起一个http请求
     int httpResult(http_result_t* result);
 
@@ -144,10 +153,13 @@ public:
     std::string host_ ;
     unsigned short port_;
     
-    bool is_fetching_;                                      // 是否存在资源正在抓取
-    DnsEntity dns_;                                         // DNS信息
+    bool is_fetching_;                                      // 是否正在抓取
     ResList res_list_;	  	                                // 就绪列表
-    
+
+    int  dns_retry_count_ ;                                 // 重试次数
+    bool dns_is_resolving_;                                 // 是否正在解析DNS
+    DnsEntity dns_;                                         // DNS信息
+
     int fetch_interval_;                                    // 抓取周期(ms)
     int last_fetch_time_;                                   // 上次抓取时间(ms)
     int error_retry_time_;                                  // 发生失败后，重试的时间间隔

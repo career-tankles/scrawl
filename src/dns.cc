@@ -13,14 +13,7 @@
 #include <gflags/gflags.h>
 
 #include "dns.h"
-//#include "conf.h"
-
-DEFINE_int32(DNS_threads, 5, "");
-DEFINE_int32(DNS_rqst_queue_size, 1000, "");
-DEFINE_int32(DNS_rslt_queue_size, 5000, "");
-DEFINE_int32(DNS_usleep, 10, "");
-DEFINE_int32(DNS_nores_usleep, 100, "");
-DEFINE_int32(DNS_error_retry_time, 3600, "");
+#include "conf.h"
 
 namespace spider {
 namespace dns {

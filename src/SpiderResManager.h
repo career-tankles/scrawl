@@ -40,7 +40,7 @@ private:
     std::map<std::string, boost::shared_ptr<Website> > sites_map_;          // 每个host对应一项
 
     ResList res_list_;
-    //simple_queue<std::string> url_list_;
+    ptr_queue<WebsiteConfig> website_cfg_;
 
     bool is_running_ ;
 

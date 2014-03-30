@@ -5,13 +5,8 @@
 #include <gflags/gflags.h>
 
 #include "TimeWait.h"
+#include "conf.h"
 #include "libevent_wrapper.h"
-
-DEFINE_int32(WAITER_threads, 5, "");
-DEFINE_int32(WAITER_usleep, 10, "");
-DEFINE_int32(WAITER_nores_usleep, 100, "");
-DEFINE_int32(WAITER_rqst_queue_size, 5000, "");
-DEFINE_int32(WAITER_rslt_queue_size, 6000, "");
 
 
 namespace spider {

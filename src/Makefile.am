@@ -27,11 +27,11 @@ LIBS =  -L. \
         
 
 noinst_LIBRARIES = libSpiderResManager.a
-libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc
+libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc conf.cc
 
-noinst_PROGRAMS    = thrift_spider 
-thrift_spider_SOURCES = service-main.cc
-thrift_spider_LDADD   = libSpiderResManager.a thrift/libspider_webservice.a uri/liburi.a
+noinst_PROGRAMS    = service_spider 
+service_spider_SOURCES = main.cc
+service_spider_LDADD   = libSpiderResManager.a thrift/libspider_webservice.a uri/liburi.a
 
 #noinst_PROGRAMS   += dns_tools download_tools TimeWait_tools
 #dns_tools_SOURCES = dns-tools.cc
