@@ -250,7 +250,7 @@ public:
         n += snprintf(buf+n, sizeof(buf)-n, "recv_begin_time: %d\n", result->recv_begin_time);
         n += snprintf(buf+n, sizeof(buf)-n, "recv_end_time: %d\n", result->recv_end_time);
         n += snprintf(buf+n, sizeof(buf)-n, "scrawltime: %s\n", result->scrawltime.c_str());
-        if(userdata.size()>0)
+        if(userdata.size() > 0)
             n += snprintf(buf+n, sizeof(buf)-n, "userdata: %s\n", userdata.c_str());
         n += snprintf(buf+n, sizeof(buf)-n, "http_page_data_len: %d\n", result->http_page_data_len);
         n += snprintf(buf+n, sizeof(buf)-n, "\n");

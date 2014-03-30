@@ -19,6 +19,19 @@ static void my_add_event(struct event_base* base, struct event* fd_ev, int fd, s
     event_add(fd_ev, NULL);
 }
 
+
+static void my_add_event_timeout(struct event_base* base, struct event* fd_ev, int fd, short flags, event_cb fd_handler, struct timeval tv, void* args)
+{
+    event_set(fd_ev, fd, flags, fd_handler, args);
+    event_base_set(base, fd_ev);
+    event_add(fd_ev, &tv);
+}
+
+static void my_event_del(struct event* fd_ev) 
+{
+    event_del(fd_ev);
+}
+
 static void my_add_timer(struct event_base* base, struct event* timer_ev, event_cb handler, struct timeval& tv, void* args)
 {
     assert(base);
@@ -27,6 +40,13 @@ static void my_add_timer(struct event_base* base, struct event* timer_ev, event_
     event_base_set(base, timer_ev);
     evtimer_add(timer_ev, &tv);
     return;
+}
+
+static struct timeval my_timeval(int sec, int us=0) {
+    struct timeval tv;
+    evutil_timerclear(&tv);
+    tv.tv_sec = sec; tv.tv_usec = us;
+    return tv;
 }
 
 static void my_add_timer(struct event_base* base, struct event* timer_ev, event_cb handler, int sec, int us=0, void* args=NULL)

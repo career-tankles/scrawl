@@ -60,10 +60,10 @@ void load(std::string file, SpiderWebServiceClient& client) {
                 static int i = 0;
                 if(i++ % 2 == 0)
                 {
-                    HttpRequest http_rqst;
-                    http_rqst.url = url;
-                    http_rqst.userdata = "USER-DATA:" + url;
-                    client.submit(http_rqst);
+                    HttpRequest rqst;
+                    rqst.__set_url(url);
+                    rqst.__set_userdata("USER-DATA:" + url);
+                    client.submit(rqst);
                 }
                 else
                     client.submit_url(url);
@@ -95,15 +95,13 @@ int main(int argc, char** argv) {
 
     load("urls.txt", client);
 
-/*
-    httprequest rqst;
-    rqst.url = "http://www.baidu.com/";
-    rqst.userdata = "my user data";
+    HttpRequest rqst;
+    rqst.__set_url("http://www.baidu.com/");
+    rqst.__set_userdata("my user data");
     client.submit(rqst);
 
     std::string url = "http://m.hongxiu.com";
     client.submit_url(url);
-*/
 
     transport->close();
   } catch (TException &tx) {
