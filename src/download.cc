@@ -146,7 +146,7 @@ public:
         event_del(&c->fd_event);
 
         c->recv_end_time = time(NULL);  // 结束处理时间
-        assert(c->conn_stat_ == CONN_STAT_FINISH || c->conn_stat_ == CONN_STAT_ERROR);
+        assert(c->conn_stat_ == CONN_STAT_FINISH || c->conn_stat_ == CONN_STAT_ERROR || c->conn_stat_ == CONN_STAT_TIMEOUT);
         if (c->cb_result_handler_) {
             c->cb_result_handler_(c) ;
         } else {
