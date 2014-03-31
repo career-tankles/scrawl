@@ -18,7 +18,7 @@ class storage
 {
 public:
     storage() 
-      : max_size_(FLAGS_STORE_file_max_size), data_prefix_(FLAGS_STORE_file_dir), cur_file_(""), fd_(-1), file_no_(0)
+      : data_prefix_(FLAGS_STORE_file_dir), cur_file_(""), fd_(-1), file_no_(-1)
     {
         //pthread_mutex_init(&mutex_, NULL);
     }
@@ -26,23 +26,29 @@ public:
         //pthread_mutex_destroy(&mutex_);
     }
 
-    void init(std::string prefix, size_t max_size) {
+    void init(std::string prefix) {
         
         data_prefix_ = prefix;
-        max_size_ = max_size ;
 
         struct stat stat_buf;
         char buf[256];
         while(true) {
+            file_no_ ++;
+            if(file_no_ == FLAGS_STORE_file_max_num) {
+                LOG(INFO)<<"STORAGE file reach max "<<FLAGS_STORE_file_max_num<<", use the first one";
+                file_no_ = 0;
+                sprintf(buf, "%s-%03d", data_prefix_.c_str(), file_no_);
+                break;
+            }
             sprintf(buf, "%s-%03d", data_prefix_.c_str(), file_no_);
             if(-1 == stat(buf, &stat_buf)) {
                 break; 
             }
             if(stat_buf.st_size <= 0)
                 break;
-            file_no_ ++;
+            LOG(INFO)<<"STORAGE file: "<<buf<<" exist!";
         }
-        assert(file_no_ >= 0);
+        file_no_ --;    // file_no表示当前文件序号
         LOG(INFO)<<"STORAGE init file: "<<buf;
     }
 
@@ -70,9 +76,8 @@ private:
 
     int new_fileno() {
         //pthread_mutex_lock(&mutex_);
-        int fileno = file_no_++;
-        if(file_no_>=FLAGS_STORE_file_max_num)
-            file_no_ = 0;
+        file_no_ = (file_no_+1)%FLAGS_STORE_file_max_num;
+        int fileno = file_no_;
         //pthread_mutex_unlock(&mutex_);
         return fileno;
     }
@@ -109,13 +114,13 @@ private:
             int res = fstat(fd_, &stat_buf);
             if(res == -1)
                 exit(1);
-            if(stat_buf.st_size >= max_size_) {
+            if(stat_buf.st_size >= FLAGS_STORE_file_max_size) {
                 // 切换新文件
                 close(fd_);
                 int new_fno = new_fileno();
                 char buf[256] = {0};
                 sprintf(buf, "%s-%03d", data_prefix_.c_str(), new_fno);
-                LOG(INFO)<<"STORAGE new file "<<buf;
+                LOG(INFO)<<"STORAGE new file "<<stat_buf.st_size<<">"<<FLAGS_STORE_file_max_size<<" "<<buf;
                 cur_file_ = buf;
                 fd_ = open(buf);
                 return 1;
@@ -144,7 +149,6 @@ private:
     }
     
 private:
-    long max_size_;
     std::string data_prefix_;
 
     int fd_;                    // 当前打开fd
@@ -157,7 +161,6 @@ private:
 
 struct PageStorageArgs {
     int num;
-    int max_size ;
     std::string data_dir;
     PageStorage* page_storage;
 };
@@ -177,14 +180,13 @@ public:
         PageStorage* page_storage = (PageStorage*)p->page_storage;
         assert(page_storage);
         std::string data_dir = p->data_dir;
-        int max_size = p->max_size;
         int threadnum = p->num;
 
         char buf[256] = {0};
         sprintf(buf, "%s/data-%02d", data_dir.c_str(), threadnum);
 
         storage storage_;
-        storage_.init(std::string(buf), max_size);
+        storage_.init(std::string(buf));
 
         struct http_result_t* result = NULL;
         while(page_storage->is_running_) {
@@ -291,7 +293,6 @@ int PageStorage::start() {
 
         PageStorageArgs* args = new PageStorageArgs;
         args->num = i;
-        args->max_size = FLAGS_STORE_file_max_size;
         args->data_dir = FLAGS_STORE_file_dir;
         args->page_storage = this;
         threadpool_.create_thread(_PageStorage_(), (void*)args);

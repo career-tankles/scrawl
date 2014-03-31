@@ -12,19 +12,19 @@ static struct event_base* my_event_base_new() {
     return base;
 }
 
-static void my_add_event(struct event_base* base, struct event* fd_ev, int fd, short flags, event_cb fd_handler, void* args)
+static int my_add_event(struct event_base* base, struct event* fd_ev, int fd, short flags, event_cb fd_handler, void* args)
 {
     event_set(fd_ev, fd, flags, fd_handler, args);
     event_base_set(base, fd_ev);
-    event_add(fd_ev, NULL);
+    return event_add(fd_ev, NULL);
 }
 
 
-static void my_add_event_timeout(struct event_base* base, struct event* fd_ev, int fd, short flags, event_cb fd_handler, struct timeval tv, void* args)
+static int my_add_event_timeout(struct event_base* base, struct event* fd_ev, int fd, short flags, event_cb fd_handler, struct timeval tv, void* args)
 {
     event_set(fd_ev, fd, flags, fd_handler, args);
     event_base_set(base, fd_ev);
-    event_add(fd_ev, &tv);
+    return event_add(fd_ev, &tv);
 }
 
 static void my_event_del(struct event* fd_ev) 

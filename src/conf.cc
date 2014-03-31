@@ -31,7 +31,7 @@ DEFINE_int32(STORE_rslt_queue_size, 5000, "");
 DEFINE_int32(STORE_usleep, 100, "");
 DEFINE_int32(STORE_nores_usleep, 200, "");
 DEFINE_int32(STORE_file_max_num, 1000, "");
-DEFINE_int64(STORE_file_max_size, 1<<32, "");
+DEFINE_uint64(STORE_file_max_size, 0x100000000, "");
 DEFINE_string(STORE_file_dir, "/tmp/spider/data", "must exist");
 
 DEFINE_int32(WAITER_threads, 1, "");

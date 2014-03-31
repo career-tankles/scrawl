@@ -35,7 +35,7 @@ DECLARE_int32(STORE_rslt_queue_size);
 DECLARE_int32(STORE_usleep);
 DECLARE_int32(STORE_nores_usleep);
 DECLARE_int32(STORE_file_max_num);
-DECLARE_int64(STORE_file_max_size);
+DECLARE_uint64(STORE_file_max_size);
 DECLARE_string(STORE_file_dir);
 
 

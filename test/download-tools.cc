@@ -7,10 +7,6 @@
 #include "download.h"
 #include "message.h"
 #include "download.h"
-//#include "storage.h"
-
-//const static char* http_request_str = "GET / HTTP/1.1\r\nHost: baidu.com\r\nConnection: close\r\n\r\n" ;
-const static char* http_request_str = "GET /ssid=0/from=0/bd_page_type=1/uid=0/baiduid=/pu=sz%40224_220%2Cta%40middle___3_537/baiduid=4880808961BE15D43033D05B160470A8/w=0_10_%E9%98%BF%E5%8D%A1%E5%8D%A1%E7%AC%AC%E4%B8%89%E6%96%B9/t=wap/l=1/tc?ref=www_colorful&lid=10393337082113240670&order=3&vit=osres&tj=www_normal_3_0_10&waput=2&waplogo=1&sec=37275&di=204fe824393284ae&bdenc=1&nsrc=IlPT2AEptyoA_yixCFOxXnANedT62v3IJBaOMmBH_zSv95qtva02J1ZpXTuqAp7YH5bugTCco2tJoiHqO8hmkNJOrhoqej5q7EmsxarttsPPSxQQfwJiOtmU HTTP/1.1\r\nHost: m.baidu.com\r\nConnection: close\r\n\r\n" ;
 
 using namespace spider::message;
 using namespace spider::download;
@@ -26,7 +22,7 @@ void print(http_result_t* result) {
     std::cerr<<"scrawltime="<<result->scrawltime<<std::endl;
     std::cerr<<"state="<<result->state<<std::endl;
     std::cerr<<"fetch_ip="<<result->fetch_ip<<std::endl;
-    //std::cerr<<"http_page_data="<<result->http_page_data<<std::endl;
+    std::cerr<<"http_page_data="<<result->http_page_data<<std::endl;
     std::cerr<<"http_page_data="<<result->http_page_data_len<<std::endl;
     std::cerr<<std::endl;
     std::cerr<<std::endl;
@@ -37,12 +33,9 @@ int main(){
     Downloader downloader;
     downloader.start();
 
-    //PageStorage storage;
-    //storage.start(5);
-
+    const char* http_request_str = "GET ";
     http_request_t* http_requst = new http_request_t;
-    //http_requst->ip = "220.181.112.143";   
-    http_requst->ip = "115.239.210.212";
+    http_requst->ip = "0.0.0.3";
     http_requst->port = 80;
     http_requst->submit_time = time(NULL);   
     http_requst->url = "http://m.baidu.com/";   
