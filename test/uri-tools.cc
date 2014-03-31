@@ -1,8 +1,10 @@
 #include <assert.h>
+#include <iostream>
+#include <string>
 
 #include "uri.h"
 
-int main()
+int main(int argc, char** argv)
 {
     std::string url = "http://m.baidu.com/s?word=xxxx";
     if(argc > 1)
