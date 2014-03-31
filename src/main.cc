@@ -15,7 +15,7 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
-#include "config.h"
+#include "conf.h"
 #include "threadpool.h"
 #include "SpiderWebService.h"
 #include "SpiderResManager.h"
@@ -83,8 +83,9 @@ int main(int argc, char **argv) {
     google::ParseCommandLineFlags(&argc, &argv, true);
     // Initialize Google's logging library.
     google::InitGoogleLogging(argv[0]);
-
     FLAGS_logtostderr = 1;
+
+    output_config();
 
     boost::shared_ptr<SpiderResManager> spider(new SpiderResManager);
     threadpool threadpool;

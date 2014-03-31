@@ -37,32 +37,29 @@ public:
 
 
         while(waiter->is_running_) {
-            TimeWait::_Args_* rqst = waiter->wait_list_.pop();
-            if(rqst == NULL) {
+            TimeWait::_Args_* wait_rqst = waiter->wait_list_.pop();
+            if(wait_rqst == NULL) {
                 usleep(FLAGS_WAITER_nores_usleep);
                 continue;
             }
 
-            if(rqst->wait_ms > 0) {
+            if(wait_rqst->wait_ms > 0) {
                 _InnerArgs_* _inargs_ = new _InnerArgs_;
                 _inargs_->args = args;
                 _inargs_->self = this;
-                _inargs_->rqst = (void*)rqst;
-                _inargs_->timer_ev2 = new struct event;
-                int tv_sec = rqst->wait_ms/1000; 
-                int tv_usec = (rqst->wait_ms%1000)*1000;
-                //LOG(INFO)<<"TIMEWAIT add timer event "<<tv_sec<<":"<<tv_usec;
+                _inargs_->rqst = (void*)wait_rqst;
+                //_inargs_->timer_ev2 = new struct event;
                 struct timeval tv;
                 evutil_timerclear(&tv);
-                tv.tv_sec = rqst->wait_ms/1000; tv.tv_usec = (rqst->wait_ms%1000)*1000;
-                timeout_set(_inargs_->timer_ev2, _TimeWait_::_ready_rqst_handler_, (void*)_inargs_);
-                event_base_set(base_, _inargs_->timer_ev2);
-                timeout_add(_inargs_->timer_ev2, &tv);
+                tv.tv_sec = wait_rqst->wait_ms/1000; tv.tv_usec = (wait_rqst->wait_ms%1000)*1000;
+                timeout_set(&_inargs_->timer_ev, _TimeWait_::_ready_rqst_handler_, (void*)_inargs_);
+                event_base_set(base_, &_inargs_->timer_ev);
+                timeout_add(&_inargs_->timer_ev, &tv);
 
             } else {
                 // 直接放入ready队列
-                waiter->ready_list_.push(rqst->userdata);
-                delete rqst; rqst = NULL;
+                waiter->ready_list_.push(wait_rqst->userdata);
+                delete wait_rqst; wait_rqst = NULL;
             }
             usleep(FLAGS_WAITER_usleep);
         }
@@ -75,11 +72,13 @@ public:
         _InnerArgs_* _inargs_ = (_InnerArgs_*)args;
         TimeWait* waiter = (TimeWait*)_inargs_->args;
         _TimeWait_* self = (_TimeWait_*)_inargs_->self;
-        TimeWait::_Args_* rqst = (TimeWait::_Args_*)_inargs_->rqst;
+        TimeWait::_Args_* wait_rqst = (TimeWait::_Args_*)_inargs_->rqst;
         // 放入ready队列
-        waiter->ready_list_.push(rqst->userdata);
+        waiter->ready_list_.push(wait_rqst->userdata);
+
+        timeout_del(&_inargs_->timer_ev);
+        delete wait_rqst; wait_rqst = NULL;
         delete _inargs_; _inargs_ = NULL;
-        delete rqst; rqst = NULL;
     }
 
 private:

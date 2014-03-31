@@ -49,12 +49,20 @@ public:
             c->cb_result_handler_ = _result_handler_;       // 结果处理回调函数
             c->send_buf_rptr_ = (char*)rqst->http_request_data.c_str();
             c->send_buf_left_ = rqst->http_request_data.size();
-            conn_connect(c);
+            int ret = conn_connect(c);
+            if(ret != 0 && errno != EINPROGRESS) {
+                // connect 出错
+                LOG(INFO)<<"DOWNLOAD "<< rqst->url<<" connect to "<<rqst->ip.c_str()<<":"<<rqst->port<<" failed";
+                //c->sock_fd_ = -1;
+                struct timeval tv = my_timeval(0, 1000);
+                my_add_timer(base_, &c->fd_event, _download_page_, tv, (void*)c);
+                continue;
+            }
 
             LOG(INFO)<<"DOWNLOAD start "<<rqst->url<<" "<<rqst->ip.c_str()<<":"<<rqst->port<<" fd="<<c->sock_fd_;
-            my_add_event(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, (void*)c);
-            //struct timeval tv = my_timeval(FLAGS_DOWN_write_timeout_ms/1000, (FLAGS_DOWN_write_timeout_ms%1000)*1000);
-            //my_add_event_timeout(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
+            //ret = my_add_event(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, (void*)c);
+            struct timeval tv = my_timeval(FLAGS_DOWN_write_timeout_ms/1000, (FLAGS_DOWN_write_timeout_ms%1000)*1000);
+            my_add_event_timeout(base_, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
             usleep(FLAGS_DOWN_usleep);
         }
         LOG(INFO)<<"DOWNLOAD stop one thread: "<<pthread_self();
@@ -65,11 +73,10 @@ public:
     static void _download_page_(int sock, short events, void* arg) {
         conn* c = (conn*)arg;
         _Downloader_* self = (_Downloader_*)c->user_data3;
-
+        
         if(events == EV_TIMEOUT) {              // 超时
             c->conn_stat_ = CONN_STAT_TIMEOUT;
             c->err_code_ = errno;
-            LOG(INFO)<<"DOWNLOAD timeout fd="<<c->sock_fd_;
             goto handle_result;
         }
 
@@ -100,9 +107,9 @@ public:
                 // send finished
                 c->conn_stat_ = CONN_STAT_READING;
                 my_event_del(&c->fd_event);
-                my_add_event(self->base_, &c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST|EV_TIMEOUT, _download_page_, (void*)c);
-                //struct timeval tv = my_timeval(FLAGS_DOWN_read_timeout_ms/1000, (FLAGS_DOWN_read_timeout_ms%1000)*1000);
-                //my_add_event_timeout(self->base_, &c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
+                //my_add_event(self->base_, &c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST|EV_TIMEOUT, _download_page_, (void*)c);
+                struct timeval tv = my_timeval(FLAGS_DOWN_read_timeout_ms/1000, (FLAGS_DOWN_read_timeout_ms%1000)*1000);
+                my_add_event_timeout(self->base_, &c->fd_event, c->sock_fd_, EV_READ|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
                 c->write_end_time = time(NULL);
             } 
             return ;
@@ -141,7 +148,6 @@ public:
         assert(false && "never here!!!\n") ;
     
     handle_result:
-
         // 删除fd事件
         event_del(&c->fd_event);
 
@@ -163,6 +169,7 @@ public:
         http_result_t* result = new http_result_t;
         assert(result);
         result->rqst = rqst;
+        result->res = rqst->res;
         result->url = rqst->url;
         result->submit_time = rqst->submit_time;
         result->write_end_time = c->write_end_time;

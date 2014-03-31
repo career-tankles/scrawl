@@ -18,7 +18,7 @@ class storage
 {
 public:
     storage() 
-      : max_size_(FLAGS_STORE_file_max_size), data_prefix_(FLAGS_STORE_file_prefix), cur_file_(""), fd_(-1), file_no_(0)
+      : max_size_(FLAGS_STORE_file_max_size), data_prefix_(FLAGS_STORE_file_dir), cur_file_(""), fd_(-1), file_no_(0)
     {
         //pthread_mutex_init(&mutex_, NULL);
     }
@@ -232,14 +232,18 @@ public:
     int http_result_to_str(http_result_t*& result, std::string& data) {
         assert(result);
 
-        http_request_t* rqst = result->rqst;
-        Res* res = rqst->res;
-        
-        //print(result);
+        http_request_t* rqst = NULL;
+        Res* res = NULL; 
+        std::string userdata = "";
 
-        std::string userdata = res->userdata;
+        if(result->rqst) rqst = result->rqst;
+        if(result->res) {
+             res = result->res;
+             userdata = res->userdata;
+        }
 
         //result->SerializeToString(&data);
+
         char buf[1024*1024];
         int n = 0;
         n += snprintf(buf+n, sizeof(buf)-n, "URL: %s\n", result->url.c_str());
@@ -260,9 +264,9 @@ public:
         LOG(INFO)<<"STORAGE http response "<<result->url<<" "<<(result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR")<<" pagelen="<<result->http_page_data_len<<" len="<<data.size();
 
         // 释放资源
-        delete res; res = NULL;
-        delete rqst; rqst = NULL;
-        delete result; result = NULL;
+        if(res) { delete res;  res = NULL; }
+        if(rqst){ delete rqst; rqst = NULL;}
+        if(result) { delete result; result = NULL; }
 
         return 0;
     }
@@ -288,7 +292,7 @@ int PageStorage::start() {
         PageStorageArgs* args = new PageStorageArgs;
         args->num = i;
         args->max_size = FLAGS_STORE_file_max_size;
-        args->data_dir = FLAGS_STORE_file_prefix;
+        args->data_dir = FLAGS_STORE_file_dir;
         args->page_storage = this;
         threadpool_.create_thread(_PageStorage_(), (void*)args);
     }

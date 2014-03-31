@@ -8,7 +8,7 @@
 URI::URI(std::string scheme, std::string host, std::string path, unsigned short port) 
   : scheme_(scheme), host_(host), path_(path), port_(port), isvalid_(true)
 {
-    if(port == 0) {
+    if(port == 0 || port == 80) {
         url_ = scheme_ + "://" + host_ + path_;
     } else {
         char buf[10];

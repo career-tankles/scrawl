@@ -103,6 +103,7 @@ struct http_result_t {
     int http_page_data_len;                     // 网页数据长度
     std::string http_page_data;                 // 网页数据
     http_request_t* rqst;
+    Res* res;
     
     http_result_t() {
         url = "";
@@ -114,6 +115,8 @@ struct http_result_t {
         state = HTTP_PAGE_INIT;
         http_page_data_len = 0;
         http_page_data = "";
+        rqst = NULL;
+        res = NULL;
     }
 };
 
