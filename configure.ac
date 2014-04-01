@@ -11,6 +11,7 @@ AC_CONFIG_FILES([
     src/uri/Makefile
     src/thrift/Makefile
     common/Makefile
+    test/Makefile
 ])
 AC_OUTPUT
 
