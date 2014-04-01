@@ -117,8 +117,12 @@ public:
     
         if (c->conn_stat_ == CONN_STAT_READING) {
             if(c->recv_begin_time == 0) c->recv_begin_time = time(NULL);
+            //int bytes = 0;
+            //int n = ::read(c->sock_fd_, &bytes, sizeof(bytes));
             int n = ::read(c->sock_fd_, c->recv_buf_wptr_, c->recv_buf_left_) ;
+            fprintf(stderr, "n=%d\n", n);
             if (n > 0) {
+                //fprnitf(stderr, "read %d", );
                 c->err_code_ = 0 ;
                 c->recv_buf_wptr_ += n;
                 c->recv_buf_left_ -= n;
@@ -175,7 +179,10 @@ public:
         result->write_end_time = c->write_end_time;
         result->recv_begin_time = c->recv_begin_time;
         result->recv_end_time = c->recv_end_time;
-        result->scrawltime = "todo";
+        char ts[1024]={0};
+        time_t now = time(NULL);
+        strftime(ts, sizeof(ts),"%a %Y-%m-%d %H:%M:%S",localtime(&now));
+        result->scrawltime = ts;
         if(c->conn_stat_ == CONN_STAT_FINISH) {
             result->state = http_result_t::HTTP_PAGE_OK;
             result->http_page_data = std::string(c->recv_buf_, c->recv_buf_len_);

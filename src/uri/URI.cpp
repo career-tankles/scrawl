@@ -8,6 +8,8 @@
 URI::URI(std::string scheme, std::string host, std::string path, unsigned short port) 
   : scheme_(scheme), host_(host), path_(path), port_(port), isvalid_(true)
 {
+    if(path_.empty())
+        path_ = "/";
     if(port == 0 || port == 80) {
         url_ = scheme_ + "://" + host_ + path_;
     } else {
@@ -32,6 +34,8 @@ int URI::parse(std::string url) {
     if(port_ == 0)
         port_ = 80;
     path_ = u.path().encoding();
+    if(path_.empty())
+        path_ = "/";
     if(!u.query().empty())
         path_ += "?" + u.query().encoding();
 

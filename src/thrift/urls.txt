@@ -1,10 +1,2 @@
-http://m.baidu.com/s?word=天天酷跑
-http://m.baidu.com/s?word=爸爸去哪儿
-http://m.baidu.com/s?word=淘宝网
-http://m.baidu.com/s?word=咱们结婚吧
-http://m.baidu.com/s?word=双色球
-http://m.baidu.com/s?word=打狗棍
-http://m.baidu.com/s?word=终极一班3
-http://m.baidu.com/s?word=360手机助手
-http://m.baidu.com/s?word=qq空间
-http://m.baidu.com/s?word=绝世唐门
+#http://m.baidu.com/s?word=天天酷跑
+http://www.baidu.com/

@@ -3364,7 +3364,7 @@ fi
 
           ac_config_headers="$ac_config_headers config.h"
 
-                                                            ac_config_files="$ac_config_files Makefile src/Makefile src/uri/Makefile src/thrift/Makefile common/Makefile test/Makefile"
+                                                                                ac_config_files="$ac_config_files Makefile src/Makefile src/uri/Makefile src/thrift/Makefile common/Makefile common/utils/Makefile common/http_parser/Makefile test/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3927,6 +3927,8 @@ do
   "src/uri/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/uri/Makefile" ;;
   "src/thrift/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/thrift/Makefile" ;;
   "common/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/Makefile" ;;
+  "common/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/utils/Makefile" ;;
+  "common/http_parser/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/http_parser/Makefile" ;;
   "test/Makefile" ) CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;

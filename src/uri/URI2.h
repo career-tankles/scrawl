@@ -8,17 +8,19 @@ class URI2
 {
 public:
     URI2()
-      :isvalid_(false), port_(80)
+      :isvalid_(false), port_(80), path_("/")
     {
     }
     URI2(std::string url) 
-      : port_(80)
+      : port_(80), path_("/")
     {
         parse(url);
     }
     URI2(std::string scheme, std::string host, std::string path, unsigned short port=80)
       : scheme_(scheme), host_(host), path_(path), port_(port), isvalid_(true)
     {
+        if(path_.empty())
+            path_ = "/";
         if(port == 0 || port == 80) {
             url_ = scheme_ + "://" + host_ + path_;
         } else {
@@ -48,6 +50,8 @@ public:
             }
             if(purl->path)
                 path_ = purl->path;
+            if(path_.empty())
+                path_ = "/";
             if(purl->query)
                 query_ = purl->query;
             if(purl->fragment)

@@ -1,6 +1,4 @@
 
-THRIFT = /usr/local/thrift-0.9.1/bin/thrift
-
 top_dir = ../..
 
 AM_CPPFLAGS =   -I/usr/local/thrift-0.9.1/include \
@@ -8,6 +6,7 @@ AM_CPPFLAGS =   -I/usr/local/thrift-0.9.1/include \
 
 LIBS =  -L/usr/local/thrift-0.9.1/lib -lthrift
 
+THRIFT = /usr/local/thrift-0.9.1/bin/thrift
 gen-cpp/spider_constants.cpp:
 	${THRIFT} -r --gen cpp spider.thrift
 	${THRIFT} -r --gen py spider.thrift

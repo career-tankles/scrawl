@@ -147,11 +147,11 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-THRIFT = /usr/local/thrift-0.9.1/bin/thrift
 top_dir = ../..
 AM_CPPFLAGS = -I/usr/local/thrift-0.9.1/include \
                 -I./gen-cpp
 
+THRIFT = /usr/local/thrift-0.9.1/bin/thrift
 noinst_LIBRARIES = libspider_webservice.a
 libspider_webservice_a_SOURCES = gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
 client_SOURCES = client.cpp
@@ -434,7 +434,6 @@ uninstall-am: uninstall-info-am
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-info-am
-
 
 gen-cpp/spider_constants.cpp:
 	${THRIFT} -r --gen cpp spider.thrift

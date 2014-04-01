@@ -1,1 +1,1 @@
-SUBDIRS = #uri #utils datrie hashtable
+SUBDIRS = utils http_parser datrie hashtable
