@@ -5,6 +5,7 @@
 #include <gflags/gflags.h>
 #include "message.h"
 #include "URI.h"
+#include "URI2.h"
 #include "conf.h"
 
 namespace spider {
@@ -75,7 +76,8 @@ int Website::httpRequest(http_request_t*& rqst, int& wait_ms) {
     
     rqst->res = res;
 
-    URI uri("http", host_, res->url, port_);
+    //URI uri("http", host_, res->url, port_);
+    URI2 uri("http", host_, res->url, port_);
     rqst->url = uri.url();
 
     assert(dns_.state == DnsEntity::DNS_STATE_OK);

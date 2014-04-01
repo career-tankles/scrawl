@@ -4,6 +4,7 @@
 
 #include "SpiderResManager.h"
 #include "URI.h"
+#include "URI2.h"
 #include "conf.h"
 #include "conn.h"
 #include "dns.h"
@@ -60,7 +61,8 @@ int SpiderResManager::submit(Res* res) {
             res = NULL;
             return -1;
         }
-        URI uri(url);
+        //URI uri(url);
+        URI2 uri(url);
         LOG(INFO)<<"RES submit "<<url<<" "<<res->userdata;
         res_list_.add(res);
         return 0;
@@ -202,7 +204,8 @@ static int _submitHttpRequest_(boost::shared_ptr<TimeWait>& timewaiter, boost::s
     return -100;
 }
 
-static std::string _site_key_(URI& uri) {
+//static std::string _site_key_(URI& uri) {
+static std::string _site_key_(URI2& uri) {
     if(uri.host().empty()) return "";
     if(uri.port() != 0 && uri.port() != 80) {
         char buf[256];
@@ -223,7 +226,8 @@ int SpiderResManager::svc() {
         // 处理提交的url抓取请求
         Res* res = NULL;
         while(res_list_.pop(res) == 0) {
-            URI uri;
+            //URI uri;
+            URI2 uri;
             uri.parse(res->url);
             std::string url = res->url;
             std::string host = uri.host();
@@ -272,7 +276,8 @@ int SpiderResManager::svc() {
         // 处理抓取结果
         while((result = downloader->getResult()) != NULL) {
             try{
-                URI uri(result->url);
+                //URI uri(result->url);
+                URI2 uri(result->url);
                 std::string site_key = _site_key_(uri);
                 boost::shared_ptr<Website>& site = sites_map_[site_key];
 

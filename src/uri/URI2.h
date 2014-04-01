@@ -1,5 +1,5 @@
-#ifndef __URI_H__
-#define __URI_H__
+#ifndef __URI2_H__
+#define __URI2_H__
 
 #include <string>
 #include "url-parser.h"
@@ -8,17 +8,18 @@ class URI2
 {
 public:
     URI2()
-      :isvalid_(false)
+      :isvalid_(false), port_(80)
     {
     }
     URI2(std::string url) 
+      : port_(80)
     {
         parse(url);
     }
     URI2(std::string scheme, std::string host, std::string path, unsigned short port=80)
       : scheme_(scheme), host_(host), path_(path), port_(port), isvalid_(true)
     {
-        if(port == 0) {
+        if(port == 0 || port == 80) {
             url_ = scheme_ + "://" + host_ + path_;
         } else {
             char buf[10];
@@ -41,14 +42,18 @@ public:
                 scheme_ = purl->scheme;
             if(purl->host)
                 host_ = purl->host;
-            if(purl->port)
+            if(purl->port){
+                //fprintf(stderr, "AAAAAA: %s %d\n", purl->port, port_);
                 port_ = atoi(purl->port);
+            }
             if(purl->path)
                 path_ = purl->path;
             if(purl->query)
                 query_ = purl->query;
             if(purl->fragment)
-                fragment = purl->fragment;
+                fragment_ = purl->fragment;
+
+            //fprintf(stderr, "%s %s\n", purl->query, query_.c_str());
 
             parsed_url_free(purl);
             purl = NULL;
@@ -66,10 +71,11 @@ public:
     inline std::string path() { 
         std::string totalpath = path_;
         if(!query_.empty())
-            path_ += "?" + query_;
+            totalpath += "?" + query_;
 
         return totalpath;
     }
+    inline std::string query() { return query_; }
 
 private:
     std::string url_;
