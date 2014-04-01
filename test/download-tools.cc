@@ -1,6 +1,7 @@
 
 #include <time.h>
 #include <string>
+#include <iostream>
 
 //#include "ev_ops.h"
 #include "conn.h"
@@ -33,12 +34,15 @@ int main(){
     Downloader downloader;
     downloader.start();
 
-    const char* http_request_str = "GET ";
     http_request_t* http_requst = new http_request_t;
-    http_requst->ip = "0.0.0.3";
+    http_requst->ip = "115.239.210.212";
     http_requst->port = 80;
     http_requst->submit_time = time(NULL);   
-    http_requst->url = "http://m.baidu.com/";   
+    http_requst->url = "http://m.baidu.com/s?word=中文";   
+    const char* http_request_str = "GET /s?word=中文 HTTP/1.1\r\n"
+                                   "Host: m.baidu.com\r\n"
+                                   "Connection: close\r\n"            
+                                   "\r\n";
     http_requst->http_request_data = std::string(http_request_str);
 
     for(int i=0; i<1; i++)

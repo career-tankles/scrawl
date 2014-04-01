@@ -34,7 +34,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = uri_tools$(EXEEXT)
+noinst_PROGRAMS = uri_tools$(EXEEXT) download_tools$(EXEEXT)
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,6 +45,9 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
+am_download_tools_OBJECTS = download-tools.$(OBJEXT)
+download_tools_OBJECTS = $(am_download_tools_OBJECTS)
+download_tools_DEPENDENCIES = ../src/libSpiderResManager.a
 am_uri_tools_OBJECTS = uri_tools.$(OBJEXT)
 uri_tools_OBJECTS = $(am_uri_tools_OBJECTS)
 uri_tools_DEPENDENCIES = ../src/uri/liburi.a
@@ -56,8 +59,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(uri_tools_SOURCES)
-DIST_SOURCES = $(uri_tools_SOURCES)
+SOURCES = $(download_tools_SOURCES) $(uri_tools_SOURCES)
+DIST_SOURCES = $(download_tools_SOURCES) $(uri_tools_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -89,7 +92,11 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@
+LIBS = -L/usr/local/glog-0.3.3/lib -lglog \
+       -L/usr/local/gflags-1.2/lib -lgflags \
+       -L/usr/local/boost-1.50.0/lib -lboost_thread \
+       -L/usr/local/libevent-1.4.10/lib -levent
+
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
@@ -138,9 +145,16 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-AM_CPPFLAGS = -g -I../src/uri
+AM_CPPFLAGS = -g -I../src -I../src/uri -I../common/ -I../common/utils \
+                 -I/usr/local/boost-1.50.0/include \
+                 -I/usr/local/gflags-1.2/include \
+                 -I/usr/local/glog-0.3.3/include \
+                 -I/usr/local/libevent-1.4.10/include 
+
 uri_tools_SOURCES = uri_tools.cc
 uri_tools_LDADD = ../src/uri/liburi.a
+download_tools_SOURCES = download-tools.cc
+download_tools_LDADD = ../src/libSpiderResManager.a
 all: all-am
 
 .SUFFIXES:
@@ -177,6 +191,9 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+download_tools$(EXEEXT): $(download_tools_OBJECTS) $(download_tools_DEPENDENCIES) 
+	@rm -f download_tools$(EXEEXT)
+	$(CXXLINK) $(download_tools_LDFLAGS) $(download_tools_OBJECTS) $(download_tools_LDADD) $(LIBS)
 uri_tools$(EXEEXT): $(uri_tools_OBJECTS) $(uri_tools_DEPENDENCIES) 
 	@rm -f uri_tools$(EXEEXT)
 	$(CXXLINK) $(uri_tools_LDFLAGS) $(uri_tools_OBJECTS) $(uri_tools_LDADD) $(LIBS)
@@ -187,6 +204,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/download-tools.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uri_tools.Po@am__quote@
 
 .cc.o:
