@@ -75,28 +75,40 @@ namespace uripp {
             // Scheme name found but no ":": relative, so undo scheme parse.
             f = first;
             tmp.scheme_ = scheme();
+            fprintf(stderr, "scheme:%s\n", tmp.scheme_.string().c_str());
         }
         // Parse authority, if any.
         std::string::const_iterator anchor = f;
         if (uri::parse_literal(f, last, urisyn::AUTHORITY_TRAITS.begin_cstring)) {
-            if (!parse(f, last, tmp.authority_))
+            if (!parse(f, last, tmp.authority_)){
                 f = anchor; // Not authority (must be empty path segment instead).
+            }
         } else
             f = anchor;
+
+                fprintf(stderr, "authority:%s\n", tmp.authority_.string().c_str());
         // Parse path, if any.
         parse(f, last, tmp.path_, errs ? &e : 0);
+                fprintf(stderr, "path:%s\n", tmp.path_.encoding().c_str());
         // Parse query, if any.
         if (f != last && *f == urisyn::QUERY_TRAITS.begin_char) {
             ++f;
             parse(f, last, tmp.query_, errs ? &e : 0);
+                fprintf(stderr, "query:%s\n", tmp.query_.encoding().c_str());
         }
+                fprintf(stderr, "aaaaaa\n");
         // Parse fragment, if any.
         if (f != last && *f == urisyn::FRAGMENT_TRAITS.begin_char) {
             ++f;
             parse(f, last, tmp.fragment_, errs ? &e : 0);
+                fprintf(stderr, "fragment:%s\n", tmp.fragment_.encoding().c_str());
         }
+                fprintf(stderr, "tmp.is_null()\n");
         if (tmp.is_null())
+        {
+                fprintf(stderr, "tmp.is_null()\n");
             return false;
+        }
         if (errs && !e.empty()) {
             if (!errs->empty())
                 *errs += "; ";

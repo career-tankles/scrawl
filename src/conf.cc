@@ -24,6 +24,7 @@ DEFINE_int32(DOWN_clock_interval_sec, 10, "");
 DEFINE_int32(DOWN_clock_interval_us, 0, "");
 DEFINE_int32(DOWN_read_timeout_ms, 1000, "");
 DEFINE_int32(DOWN_write_timeout_ms, 500, "");
+DEFINE_int32(DOWN_defalut_fetch_interval_sec, 30, "");
 DEFINE_string(DOWN_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", "");
 
 DEFINE_int32(STORE_threads, 1, "");
@@ -61,6 +62,7 @@ void output_config() {
     LOG(INFO)<<"DOWN_clock_interval_us="<<FLAGS_DOWN_clock_interval_us;
     LOG(INFO)<<"DOWN_read_timeout_ms="<<FLAGS_DOWN_read_timeout_ms;
     LOG(INFO)<<"DOWN_write_timeout_ms="<<FLAGS_DOWN_write_timeout_ms;
+    LOG(INFO)<<"DOWN_defalut_fetch_interval_sec="<<FLAGS_DOWN_defalut_fetch_interval_sec;
     LOG(INFO)<<"DOWN_UserAgent="<<FLAGS_DOWN_UserAgent;
     LOG(INFO)<<"STORE_threads="<<FLAGS_STORE_threads;
     LOG(INFO)<<"STORE_rslt_queue_size="<<FLAGS_STORE_rslt_queue_size;

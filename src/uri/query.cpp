@@ -95,9 +95,14 @@ namespace uripp {
                         break;
                     } else {
                         char c = *f;
+                        fprintf(stderr, "'%c'-'%d'\n", c, (int)c);
                         if (c == query::PAIRS_SEP_CHAR || (!i && c == query::KEY_VALUE_SEP_CHAR))
+    {
+    fprintf(stderr, "wwwwwwwwwwwwwwwwwwwww\n");
                             break;
+}
                         if (urisyn::QUERY_TRAITS.char_class[(unsigned char)c] < urisyn::CVAL) {
+                    fprintf(stderr, "zzzzzzzzzzzzzzzzzzzzzzzz\n");
                             eof = true;
                             break;
                         }
@@ -116,23 +121,31 @@ namespace uripp {
             }
             if (key.empty()) { // Need a key but missing.
                 if (!value.empty()) {
-                    if (!errs || tmp.empty())
+                    if (!errs || tmp.empty()) {
+                    fprintf(stderr, "aaaa !errs || tmp.empty() %d %d\n", errs, tmp.empty());
                         return false;
+        }
                     e += ", (" + convert(f - first) + ") missing key (ignoring value)";
                 }
             } else if (nokvsep) { // Missing '='.
-                if (!errs || tmp.empty())
+                if (!errs || tmp.empty()) {
+                    fprintf(stderr, "000000 !errs || tmp.empty() %d %d\n", errs, tmp.empty());
                     return false;
+                }
                 e += ", (" + convert(f - first) + ") missing \"" + std::string(1, query::KEY_VALUE_SEP_CHAR) + "\" (ignoring key)";
             } else {
                 if (!urisyn::decode(key)) { // Bad encoding.
-                    if (!errs || tmp.empty())
+                    if (!errs || tmp.empty()){
+                        fprintf(stderr, "11111 !errs || tmp.empty() %d %d\n", errs, tmp.empty());
                         return false;
+                        }
                     e += ", (" + convert(f - first) + ") invalid key encoding (using as is)";
                 }
                 if (!urisyn::decode(value)) { // Bad encoding.
-                    if (!errs || tmp.empty())
+                    if (!errs || tmp.empty()) {
+                        fprintf(stderr, "222222 !errs || tmp.empty() %d %d\n", errs, tmp.empty());
                         return false;
+                    }
                     e += ", (" + convert(f - first) + ") invalid value encoding (using as is)";
                 }
                 tmp.push_back(std::make_pair(key, value));
@@ -145,6 +158,7 @@ namespace uripp {
         }
         v = tmp;
         first = f;
+        fprintf(stderr, "Query end %d\n", first-last);
         return true;
     }
 }

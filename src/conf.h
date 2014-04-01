@@ -28,6 +28,7 @@ DECLARE_int32(DOWN_clock_interval_sec);
 DECLARE_int32(DOWN_clock_interval_us);
 DECLARE_int32(DOWN_read_timeout_ms);
 DECLARE_int32(DOWN_write_timeout_ms);
+DECLARE_int32(DOWN_defalut_fetch_interval_sec);
 DECLARE_string(DOWN_UserAgent);
 
 DECLARE_int32(STORE_threads);

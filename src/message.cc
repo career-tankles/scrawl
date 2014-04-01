@@ -36,7 +36,7 @@ Website::Website() {
     dns_is_resolving_ = false;
     dns_retry_count_ = 0;
 
-    fetch_interval_ = 10; // 10s
+    fetch_interval_ = FLAGS_DOWN_defalut_fetch_interval_sec; 
     last_fetch_time_ = time(NULL) - fetch_interval_;
     error_retry_time_ = 3600;
     userdata_ = "";
