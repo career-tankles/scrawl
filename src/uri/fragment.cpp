@@ -39,16 +39,11 @@ namespace uripp {
         fragment tmp;
         std::string e;
         urisyn::parse(urisyn::FRAGMENT_TRAITS, f, last, tmp.string_);
-        if (tmp.empty()){
-            fprintf(stderr, "fragment: tmp.empty()\n");
+        if (tmp.empty())
             return false;
-        }
         if (!urisyn::decode(tmp.string_)) { // Invalid encoding.
             if (!errs)
-    {
-            fprintf(stderr, "fragment: !errs  %d\n", errs);
                 return false;
-    }
             e = ", invalid encoding (using as is)";
         }
         if (errs && !e.empty()) {

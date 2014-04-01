@@ -157,10 +157,8 @@ namespace uripp {
                 urisyn::parse(urisyn::PATH_TRAITS, f, last, s);
                 if (!s.empty()) { // Non-empty segment: decode and push.
                     if (!urisyn::decode(s)) { // Invalid encoding in segment.
-                        if (!errs){
-                            fprintf(stderr, "urisyn::decode(s) %d\n", errs);
+                        if (!errs)
                             return false;
-                        }
                         e += ", (" + convert((size_t)(f - first)) + ") invalid segment encoding (using as is)";
                     }
                     tmp.segments_.push_back(s);
@@ -172,10 +170,7 @@ namespace uripp {
                 ++f;
             }
         if (f == first)
-        {
-            fprintf(stderr, "f == first\n");
             return false;
-        }
         if (errs && !e.empty()) {
             if (!errs->empty())
                 *errs += "; ";
