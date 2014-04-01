@@ -154,7 +154,7 @@ AM_CPPFLAGS = -I/usr/local/boost-1.50.0/include \
                 -I$(srcdir)/common/utils \
                 -I$(srcdir)/src 
 
-SUBDIRS = common src 
+SUBDIRS = common src test
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -387,7 +387,7 @@ distdir: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
-	-find $(distdir) -type d ! -perm -755 -exec chmod a+rwx,go+rx {} \; -o \
+	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
 	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -444 -exec $(SHELL) $(install_sh) -c -m a+r {} {} \; \
