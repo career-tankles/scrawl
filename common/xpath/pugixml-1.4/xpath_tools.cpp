@@ -296,25 +296,15 @@ int load(const char* file, std::string& data) {
     return 0;
 }
 
-int main()
-{
-
-    std::string html_data ;
-    int ret = load("a.html", html_data);
-    assert(ret == 0);
+// 根据c解析模板解析http_data网页数据，生成JSON数据json_str
+// @return 0: success  <0: failed
+int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json_str) {
 
     pugi::xml_document doc;
-    //if (!doc.load_file("a.html")) return -1;
-    if(!doc.load(html_data.c_str())) return -1;
-
-    std::string cfg_data ;
-    ret = load("tpl.m.baidu.com.conf", cfg_data);
-    assert(ret == 0);
-
-    struct cfg_tpl c;
-    //ret = parse(cfg_str, &c);
-    ret = parse_cfg(cfg_data.c_str(), &c);
-    assert(ret == 0);
+    if(!doc.load(html_data.c_str())) {
+        std::cout<<"ERROR: doc.load "<<std::endl;
+        return -1;
+    }
 
     cJSON* jnew_root = cJSON_CreateObject();
 
@@ -412,11 +402,34 @@ int main()
     }
 
     cJSON_AddItemToObject(jnew_root, "results", jnew_results);
-    std::cout<<cJSON_Print(jnew_root)<<std::endl;
+    //std::cout<<cJSON_Print(jnew_root)<<std::endl;
+    json_str = cJSON_PrintUnformatted(jnew_root);
     cJSON_Delete(jnew_root);
 
     return 0;
+}
 
+int main()
+{
+
+    std::string cfg_data ;
+    int ret = load("tpl.m.baidu.com.conf", cfg_data);
+    assert(ret == 0);
+
+    struct cfg_tpl c;
+    ret = parse_cfg(cfg_data.c_str(), &c);
+    assert(ret == 0);
+
+    std::string html_data ;
+    ret = load("a.html", html_data);
+    assert(ret == 0);
+
+    std::string return_json_str;
+    ret = parse_http_page(html_data, c, return_json_str) ;
+    assert(ret == 0);
+
+    std::cout<<return_json_str<<std::endl;
+    
 
 /*
     {

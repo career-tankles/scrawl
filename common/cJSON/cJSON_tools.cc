@@ -17,6 +17,7 @@ int main() {
     cJSON* obj = cJSON_CreateObject();
     cJSON_AddStringToObject(obj, "srcid", "map");
     std::cout<<cJSON_Print(obj)<<std::endl;
+    //std::cout<<cJSON_PrintUnformatted(obj)<<std::endl;
     cJSON_Delete(obj);
 
     const int require_null_terminated = 0;
