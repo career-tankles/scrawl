@@ -139,7 +139,7 @@ header_field_cb (http_parser *p, const char *buf, size_t len)
   assert(p == parser);
   struct message *m = &messages[num_messages];
 
-  if (m->last_header_element != FIELD)
+  if (m->last_header_element != message::FIELD)
     m->num_headers++;
 
   strlncat(m->headers[m->num_headers-1][0],
@@ -147,7 +147,7 @@ header_field_cb (http_parser *p, const char *buf, size_t len)
            buf,
            len);
 
-  m->last_header_element = FIELD;
+  m->last_header_element = message::FIELD;
 
     fprintf(stderr, "header_field_cb: %d\n", len);
  
@@ -168,7 +168,7 @@ header_value_cb (http_parser *p, const char *buf, size_t len)
            buf,
            len);
 
-  m->last_header_element = VALUE;
+  m->last_header_element = message::VALUE;
   fprintf(stderr, "header_value_cb: %s -> %s\n", m->headers[m->num_headers-1][0], m->headers[m->num_headers-1][1]);
 
   return 0;
@@ -213,7 +213,7 @@ int
 headers_complete_cb (http_parser *p)
 {
   assert(p == parser);
-  messages[num_messages].method = parser->method;
+  messages[num_messages].method = (http_method)parser->method;
   messages[num_messages].status_code = parser->status_code;
   messages[num_messages].http_major = parser->http_major;
   messages[num_messages].http_minor = parser->http_minor;
@@ -260,16 +260,28 @@ message_complete_cb (http_parser *p)
 }
 
 
+/*
+struct http_parser_settings {
+  http_cb      on_message_begin;
+  http_data_cb on_url;
+  http_data_cb on_status;
+  http_data_cb on_header_field;
+  http_data_cb on_header_value;
+  http_cb      on_headers_complete;
+  http_data_cb on_body;
+  http_cb      on_message_complete;
+};
+*/
 
 static http_parser_settings settings_count_body =
-  {.on_message_begin = message_begin_cb
-  ,.on_header_field = header_field_cb
-  ,.on_header_value = header_value_cb
-  ,.on_url = request_url_cb
-  ,.on_status = response_status_cb
-  ,.on_body = count_body_cb
-  ,.on_headers_complete = headers_complete_cb
-  ,.on_message_complete = message_complete_cb
+  {message_begin_cb
+  ,request_url_cb
+  ,response_status_cb
+  ,header_field_cb
+  ,header_value_cb
+  ,headers_complete_cb
+  ,count_body_cb
+  ,message_complete_cb
   };
 
 int main(int argc, char** argv)
@@ -278,7 +290,7 @@ int main(int argc, char** argv)
     if(argc == 2)
         filename = argv[1];
 
-    parser = malloc(sizeof(http_parser));
+    parser = (http_parser*)malloc(sizeof(http_parser));
     http_parser_init(parser, HTTP_RESPONSE);
 
     char data[1024*1024];
