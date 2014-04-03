@@ -296,6 +296,69 @@ int load(const char* file, std::string& data) {
     return 0;
 }
 
+vector<std::string> split(std::string str,const char* c)
+{
+    char *cstr, *p;
+    std::vector<std::string> res;
+    cstr = new char[str.size()+1];
+    strcpy(cstr,str.c_str());
+    p = strtok(cstr,c);
+    while(p!=NULL)
+    {
+        res.push_back(p);
+        p = strtok(NULL,c);
+    }
+    delete[] cstr;
+    return res;
+}
+
+int load_tpls(std::string file, std::map<std::string, struct cfg_tpl>& maps_tpls) {
+    int fd = open(file.c_str(), O_RDONLY);
+    if(fd == -1) return -1;
+    ssize_t n = 0;
+    ssize_t left = 0;
+    char buf[1024*1024];
+    while((n=read(fd, buf+left, sizeof(buf)-left)) > 0)
+    {
+        char* p = buf;
+        char* begin = buf;
+        left += n;
+        while(p < buf+left){
+            if(*p == '\r' || *p == '\n'){
+                std::string line = std::string(begin, p-begin);
+                if(!line.empty() && line[0] != '#') {
+                    std::vector<std::string> v = split(line, " ");
+                        std::cout<<"kdalfjaksdf"<<v.size()<<std::endl;
+                    if(v.size() == 2) {
+                        struct cfg_tpl c;
+                        std::string cfg_data;
+                        int ret = load(v[1].c_str(), cfg_data);
+                        assert(ret == 0);
+                        ret = parse_cfg(cfg_data.c_str(), &c);
+                        assert(ret == 0);
+
+                        std::cout<<"asdfasdf"<<v[0]<<" "<<v[1]<<std::endl;
+                        maps_tpls.insert(std::pair<std::string, struct cfg_tpl>(v[0], c));
+
+                        
+                    }
+                }
+                while(p<buf+left) {
+                    if(*p != '\r' && *p != '\n')
+                        break;
+                    p++;
+                }
+                begin = p;
+                continue;
+            }
+            p++;
+        }
+        if(begin != buf && p > begin)
+            memmove(buf, begin, p-begin);
+    }
+}
+
+
 // 根据c解析模板解析http_data网页数据，生成JSON数据json_str
 // @return 0: success  <0: failed
 int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json_str) {
@@ -409,6 +472,7 @@ int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json
     return 0;
 }
 
+
 int main()
 {
 
@@ -416,20 +480,33 @@ int main()
     int ret = load("tpl.m.baidu.com.conf", cfg_data);
     assert(ret == 0);
 
-    struct cfg_tpl c;
-    ret = parse_cfg(cfg_data.c_str(), &c);
-    assert(ret == 0);
+    //struct cfg_tpl c;
+    //ret = parse_cfg(cfg_data.c_str(), &c);
+    //assert(ret == 0);
 
     std::string html_data ;
     ret = load("a.html", html_data);
     assert(ret == 0);
 
-    std::string return_json_str;
-    ret = parse_http_page(html_data, c, return_json_str) ;
+    std::map<std::string, struct cfg_tpl> maps_tpls;
+    ret = load_tpls("tpls.conf", maps_tpls) ;
     assert(ret == 0);
-
-    std::cout<<return_json_str<<std::endl;
     
+    std::string host = "m.baidu.com";
+    if(maps_tpls.count(host)==0)
+        std::cout<<"not exit host"<<std::endl;
+    else {
+        struct cfg_tpl& c = maps_tpls[host];
+
+        std::string return_json_str;
+        std::cout<<"parse_http_page"<<std::endl;
+        ret = parse_http_page(html_data, c, return_json_str) ;
+        assert(ret == 0);
+        
+        std::cout<<return_json_str<<std::endl;
+    }
+    
+   
 
 /*
     {

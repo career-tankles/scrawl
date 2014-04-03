@@ -1,6 +1,6 @@
 
 top_dir = ../../..
-CXXFLAGS = -I$(top_dir)/common/cJSON
+CXXFLAGS = -g -I$(top_dir)/common/cJSON
 
 noinst_LIBRARIES = libxpath.a
 libxpath_a_SOURCES = pugixml.cpp
