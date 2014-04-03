@@ -1,1 +1,1 @@
-SUBDIRS = utils http_parser datrie hashtable
+SUBDIRS = cJSON utils http_parser datrie hashtable xpath
