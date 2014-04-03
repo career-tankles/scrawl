@@ -296,23 +296,30 @@ int load(const char* file, std::string& data) {
     return 0;
 }
 
-vector<std::string> split(std::string str,const char* c)
-{
-    char *cstr, *p;
-    std::vector<std::string> res;
-    cstr = new char[str.size()+1];
-    strcpy(cstr,str.c_str());
-    p = strtok(cstr,c);
-    while(p!=NULL)
-    {
-        res.push_back(p);
-        p = strtok(NULL,c);
-    }
-    delete[] cstr;
-    return res;
+void print(std::vector<std::string>& v) {
+    for(int i=0; i<v.size(); i++)
+        cout<<"["<<v[i]<<"]"<<endl;
+    cout<<endl;
 }
 
-int load_tpls(std::string file, std::map<std::string, struct cfg_tpl>& maps_tpls) {
+void splitBySpace(const char* s, std::vector<std::string>& v) {
+    if(!s) return ;
+
+    std::cout<<"["<<s<<"]"<<std::endl;
+    const char* start = NULL;
+    const char* p = s;
+    while(p && *p != '\0') {
+        while(p && *p != '\0' && (*p == ' ' || *p == '\t' || *p == '\n')) p++; // 第一个非空字符
+        start = p;
+        while(p && *p != '\0' && *p != ' ' && *p != '\t' && *p != '\n') p++; // 起始非空字符
+        if(start && p && *p != '\0' ) { 
+            v.push_back(std::string(start, p-start));
+        } else if(start) {
+            v.push_back(std::string(start));
+        }   
+    }   
+}
+int load_tpls(std::string file, std::map<std::string, struct cfg_tpl*>& maps_tpls) {
     int fd = open(file.c_str(), O_RDONLY);
     if(fd == -1) return -1;
     ssize_t n = 0;
@@ -327,10 +334,12 @@ int load_tpls(std::string file, std::map<std::string, struct cfg_tpl>& maps_tpls
             if(*p == '\r' || *p == '\n'){
                 std::string line = std::string(begin, p-begin);
                 if(!line.empty() && line[0] != '#') {
-                    std::vector<std::string> v = split(line, " ");
-                        std::cout<<"kdalfjaksdf"<<v.size()<<std::endl;
+                    std::vector<std::string> v ;
+                    splitBySpace(line.c_str(), v);
+                    print(v);
                     if(v.size() == 2) {
-                        struct cfg_tpl c;
+                        struct cfg_tpl* t = new cfg_tpl;
+                        struct cfg_tpl& c = *t;
                         std::string cfg_data;
                         int ret = load(v[1].c_str(), cfg_data);
                         assert(ret == 0);
@@ -338,7 +347,7 @@ int load_tpls(std::string file, std::map<std::string, struct cfg_tpl>& maps_tpls
                         assert(ret == 0);
 
                         std::cout<<"asdfasdf"<<v[0]<<" "<<v[1]<<std::endl;
-                        maps_tpls.insert(std::pair<std::string, struct cfg_tpl>(v[0], c));
+                        maps_tpls.insert(std::pair<std::string, struct cfg_tpl*>(v[0], t));
 
                         
                     }
@@ -438,17 +447,11 @@ int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json
                     need_tags_v.push_back(_jneed_tag->valuestring);
                 }
                 
-                //if(jfield_need_tags)
-                //    field_need_tags = jfield_need_tags->valuestring;
-                //if(need_tags_v.empty()) {
-                //    AUTO_NODE_RICHTEXT_BY_XPATH(node, field_xpath.c_str(), field_value);
-                //} else {
-                    AUTO_NODE_RICHTEXT_BY_XPATH2(node, field_xpath.c_str(), field_value, need_tags_v);
-                //}
+                AUTO_NODE_RICHTEXT_BY_XPATH2(node, field_xpath.c_str(), field_value, need_tags_v);
             }
                 
             if(field_value.empty()) {
-                std::cout<<"======"<<field_name<<" field_value is empty"<<std::endl;
+                std::cout<<"======"<<field_name<<" "<<field_type<<" "<<field_xpath<<" field_value=null"<<std::endl;
                 goto Next;
             }
 
@@ -488,7 +491,7 @@ int main()
     ret = load("a.html", html_data);
     assert(ret == 0);
 
-    std::map<std::string, struct cfg_tpl> maps_tpls;
+    std::map<std::string, struct cfg_tpl*> maps_tpls;
     ret = load_tpls("tpls.conf", maps_tpls) ;
     assert(ret == 0);
     
@@ -496,11 +499,11 @@ int main()
     if(maps_tpls.count(host)==0)
         std::cout<<"not exit host"<<std::endl;
     else {
-        struct cfg_tpl& c = maps_tpls[host];
+        struct cfg_tpl*& c = maps_tpls[host];
 
         std::string return_json_str;
         std::cout<<"parse_http_page"<<std::endl;
-        ret = parse_http_page(html_data, c, return_json_str) ;
+        ret = parse_http_page(html_data, *c, return_json_str) ;
         assert(ret == 0);
         
         std::cout<<return_json_str<<std::endl;
