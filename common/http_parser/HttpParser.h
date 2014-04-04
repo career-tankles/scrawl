@@ -1,6 +1,7 @@
 #ifndef _HTTP_PARSER_H_
 #define _HTTP_PARSER_H_
 
+#include <sys/types.h>
 #include <string>
 #include <map>
 
@@ -13,8 +14,8 @@ public:
     HttpParser();
     ~HttpParser();
 
-    int parse(std::string& html_raw_data, std::string* headers=NULL, std::string* body=NULL);
-    int parse(std::string& html_raw_data, std::map<std::string, std::string>* headers=NULL, std::string* body=NULL);
+    int parse(std::string& html_raw_data, std::string* headers=NULL, std::string* body=NULL, size_t* parsed_len=NULL);
+    int parse(std::string& html_raw_data, std::map<std::string, std::string>* headers=NULL, std::string* body=NULL, size_t* parsed_len=NULL);
 
 private:
     int init();

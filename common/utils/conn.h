@@ -2,7 +2,7 @@
 #define CONN_H_
 
 #define CONN_SEND_BUF_SIZE  1024
-#define CONN_RECV_BUF_SIZE  500*1024
+#define CONN_RECV_BUF_SIZE  1024*1024
 
 #include <unistd.h>
 #include <fcntl.h>

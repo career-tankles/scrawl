@@ -57,17 +57,17 @@ void load(std::string file, SpiderWebServiceClient& client) {
             if(*p == '\r' || *p == '\n'){
                 std::string url = std::string(begin, p-begin);
                 std::cout<<url<<std::endl;
-                static int i = 0;
-                if(i++ % 2 == 0)
+                if(strncmp(url.c_str(), "http://", strlen("http://")) != 0)
                 {
-                    HttpRequest rqst;
-                    rqst.__set_url(url);
-                    rqst.__set_userdata("USER-DATA:" + url);
-                    //client.submit(rqst);
-                    client.submit_url(url);
+                    const static std::string default_host = "http://m.baidu.com/s?word=";
+                    url = default_host+url;
                 }
-                else
-                    client.submit_url(url);
+                HttpRequest rqst;
+                rqst.__set_url(url);
+                rqst.__set_userdata("USER-DATA:" + url);
+                //client.submit(rqst);
+                client.submit_url(url);
+
                 while(p<buf+left) {
                     if(*p != '\r' && *p != '\n')
                         break;

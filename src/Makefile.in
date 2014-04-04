@@ -58,8 +58,10 @@ libSpiderResManager_a_OBJECTS = $(am_libSpiderResManager_a_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am_service_spider_OBJECTS = main.$(OBJEXT)
 service_spider_OBJECTS = $(am_service_spider_OBJECTS)
-service_spider_DEPENDENCIES = libSpiderResManager.a \
-	thrift/libspider_webservice.a uri/liburi.a
+service_spider_DEPENDENCIES = libSpiderResManager.a uri/liburi.a \
+	thrift/libspider_webservice.a \
+	${top_dir}/common/cJSON/libcJSON.a \
+	${top_dir}/common/http_parser/libHttpParser.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -175,8 +177,9 @@ AM_CPPFLAGS = -g \
                 -I/usr/local/thrift-0.9.1/include \
                 -I${top_dir}/include \
                 -I${top_dir}/common \
-                -I${top_dir}/common/uri \
                 -I${top_dir}/common/utils \
+                -I${top_dir}/common/cJSON \
+                -I${top_dir}/common/http_parser \
                 -I./uri \
                 -I./thrift  \
                 -I./thrift/gen-cpp
@@ -184,7 +187,12 @@ AM_CPPFLAGS = -g \
 noinst_LIBRARIES = libSpiderResManager.a
 libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc conf.cc
 service_spider_SOURCES = main.cc
-service_spider_LDADD = libSpiderResManager.a thrift/libspider_webservice.a uri/liburi.a
+service_spider_LDADD = libSpiderResManager.a \
+                         uri/liburi.a \
+                         thrift/libspider_webservice.a \
+                         ${top_dir}/common/cJSON/libcJSON.a \
+                         ${top_dir}/common/http_parser/libHttpParser.a
+
 all: all-recursive
 
 .SUFFIXES:

@@ -11,8 +11,9 @@ AM_CPPFLAGS = -g \
                 -I/usr/local/thrift-0.9.1/include \
                 -I${top_dir}/include \
                 -I${top_dir}/common \
-                -I${top_dir}/common/uri \
                 -I${top_dir}/common/utils \
+                -I${top_dir}/common/cJSON \
+                -I${top_dir}/common/http_parser \
                 -I./uri \
                 -I./thrift  \
                 -I./thrift/gen-cpp
@@ -32,7 +33,11 @@ libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.c
 
 noinst_PROGRAMS    = service_spider 
 service_spider_SOURCES = main.cc
-service_spider_LDADD   = libSpiderResManager.a thrift/libspider_webservice.a uri/liburi.a
+service_spider_LDADD   = libSpiderResManager.a \
+                         uri/liburi.a \
+                         thrift/libspider_webservice.a \
+                         ${top_dir}/common/cJSON/libcJSON.a \
+                         ${top_dir}/common/http_parser/libHttpParser.a
 
 #noinst_PROGRAMS   += dns_tools download_tools TimeWait_tools
 #dns_tools_SOURCES = dns-tools.cc

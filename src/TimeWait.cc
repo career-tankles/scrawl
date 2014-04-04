@@ -113,7 +113,7 @@ public:
     static void _clock_handler(const int fd, const short which, void *args) 
     {
         _TimeWaitReactor_* self = (_TimeWaitReactor_*)args;
-        my_add_timer(self->base_, &self->clockevent_, _TimeWaitReactor_::_clock_handler, 10, 0, args);
+        my_add_timer(self->base_, &self->clockevent_, _TimeWaitReactor_::_clock_handler, 0, 1000, args);
     }
 
 private:

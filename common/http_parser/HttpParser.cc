@@ -253,7 +253,7 @@ static void _message_to_headers_body(struct message* m, std::string* headers=NUL
             }
             len += snprintf(header_buf+len, sizeof(header_buf)-len-1, "%s: %s\r\n", m->headers[i][0], m->headers[i][1]);
         }
-        len += snprintf(header_buf+len, sizeof(header_buf)-len-1, "\r\n");
+        //len += snprintf(header_buf+len, sizeof(header_buf)-len-1, "\r\n");
     
         *headers = std::string(header_buf, len);
     }
@@ -288,7 +288,7 @@ static void _message_to_headers_body(struct message* m, std::map<std::string, st
 }
 
 
-int HttpParser::parse(std::string& html_raw_data, std::string* headers, std::string* body) {
+int HttpParser::parse(std::string& html_raw_data, std::string* headers, std::string* body, size_t* parsed_len) {
     
     reset();
 
@@ -300,14 +300,15 @@ int HttpParser::parse(std::string& html_raw_data, std::string* headers, std::str
     if(!body)
         http_message_->b_parser_body = false;
 
-    size_t parsed_len = http_parser_execute(http_parser_, &settings_count_body, html_raw_data.c_str(), html_raw_data.size());
+    size_t parsed_len_ = http_parser_execute(http_parser_, &settings_count_body, html_raw_data.c_str(), html_raw_data.size());
+    if(parsed_len) *parsed_len = parsed_len_;
 
     _message_to_headers_body(http_message_, headers, body);
 
     return 0;
 }
 
-int HttpParser::parse(std::string& html_raw_data, std::map<std::string, std::string>* headers, std::string* body) {
+int HttpParser::parse(std::string& html_raw_data, std::map<std::string, std::string>* headers, std::string* body, size_t* parsed_len) {
 
     reset();
  
@@ -319,7 +320,8 @@ int HttpParser::parse(std::string& html_raw_data, std::map<std::string, std::str
     if(!body)
         http_message_->b_parser_body = false;
    
-    size_t parsed_len = http_parser_execute(http_parser_, &settings_count_body, html_raw_data.c_str(), html_raw_data.size());
+    size_t parsed_len_ = http_parser_execute(http_parser_, &settings_count_body, html_raw_data.c_str(), html_raw_data.size());
+    if(parsed_len) *parsed_len = parsed_len_;
     
     _message_to_headers_body(http_message_, headers, body);
 

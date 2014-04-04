@@ -10,6 +10,8 @@
 
 #include "storage.h"
 #include "conf.h"
+#include "HttpParser.h"
+#include "cJSON.h"
 
 namespace spider {
 namespace store {
@@ -187,6 +189,8 @@ public:
 
         storage storage_;
         storage_.init(std::string(buf));
+    
+        HttpParser parser;    // HTTP解析器
 
         struct http_result_t* result = NULL;
         while(page_storage->is_running_) {
@@ -197,7 +201,7 @@ public:
             }
             std::string url = result->url;
             std::string data;
-            int res = http_result_to_str(result, data);
+            int res = http_result_to_str(parser, result, data);
             if(res != 0) {
                 LOG(ERROR)<<"STORAGE http_result_to_str failed ";
                 continue;
@@ -231,7 +235,7 @@ public:
         std::cerr<<std::endl;
     }
     
-    int http_result_to_str(http_result_t*& result, std::string& data) {
+    int http_result_to_str(HttpParser& parser, http_result_t*& result, std::string& data) {
         assert(result);
 
         http_request_t* rqst = NULL;
@@ -244,26 +248,68 @@ public:
              userdata = res->userdata;
         }
 
-        //result->SerializeToString(&data);
+        // http_parser解析网页
+        std::string headers, body;
+        parser.parse(result->http_page_data, &headers, &body);
 
-        char buf[1024*1024];
-        int n = 0;
-        n += snprintf(buf+n, sizeof(buf)-n, "URL: %s\n", result->url.c_str());
-        n += snprintf(buf+n, sizeof(buf)-n, "STATE: %s\n", result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR");
-        n += snprintf(buf+n, sizeof(buf)-n, "Server: %s\n", result->fetch_ip.c_str());
-        n += snprintf(buf+n, sizeof(buf)-n, "submit_time: %d\n", result->submit_time);
-        n += snprintf(buf+n, sizeof(buf)-n, "write_end_time: %d\n", result->write_end_time);
-        n += snprintf(buf+n, sizeof(buf)-n, "recv_begin_time: %d\n", result->recv_begin_time);
-        n += snprintf(buf+n, sizeof(buf)-n, "recv_end_time: %d\n", result->recv_end_time);
-        n += snprintf(buf+n, sizeof(buf)-n, "scrawltime: %s\n", result->scrawltime.c_str());
-        if(userdata.size() > 0)
-            n += snprintf(buf+n, sizeof(buf)-n, "userdata: %s\n", userdata.c_str());
-        n += snprintf(buf+n, sizeof(buf)-n, "http_page_data_len: %d\n", result->http_page_data_len);
-        n += snprintf(buf+n, sizeof(buf)-n, "\n");
 
-        data = std::string(buf, n) + result->http_page_data + "\n\n\n";
+        data = "";
+        if(FLAGS_STORE_format == "JSON") {
+            // JSON
+            cJSON* jnew_root = cJSON_CreateObject();
+            cJSON* juserinfo = cJSON_CreateObject();
 
-        LOG(INFO)<<"STORAGE http response "<<result->url<<" "<<(result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR")<<" pagelen="<<result->http_page_data_len<<" len="<<data.size();
+            cJSON_AddStringToObject(juserinfo, "url", result->url.c_str());
+            cJSON_AddStringToObject(juserinfo, "host", result->host.c_str());
+            cJSON_AddStringToObject(juserinfo, "status", result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR");
+            cJSON_AddStringToObject(juserinfo, "server", result->fetch_ip.c_str());
+            cJSON_AddNumberToObject(juserinfo, "submit_time", result->submit_time);
+            cJSON_AddNumberToObject(juserinfo, "write_end_time", result->write_end_time);
+            cJSON_AddNumberToObject(juserinfo, "recv_begin_time", result->recv_begin_time);
+            cJSON_AddNumberToObject(juserinfo, "recv_end_time", result->recv_end_time);
+            cJSON_AddStringToObject(juserinfo, "scrawltime", result->scrawltime.c_str());
+            cJSON_AddNumberToObject(juserinfo, "read_data_len", result->http_page_data_len);
+            if(userdata.size() > 0)
+                cJSON_AddStringToObject(juserinfo, "userdata", userdata.c_str());
+
+            cJSON_AddItemToObject(jnew_root, "info", juserinfo);
+
+            cJSON_AddNumberToObject(jnew_root, "headers_size", headers.size());
+            cJSON_AddStringToObject(jnew_root, "headers", headers.c_str());
+
+            cJSON_AddNumberToObject(jnew_root, "body_size", body.size());
+            cJSON_AddStringToObject(jnew_root, "body", body.c_str());
+
+            data = cJSON_PrintUnformatted(jnew_root);
+            data += "\r\n";
+            cJSON_Delete(jnew_root);
+        } else if(FLAGS_STORE_format == "HTTP") {
+            int n = 0;
+            char buf[1024*1024];
+            n += snprintf(buf+n, sizeof(buf)-n, "URL: %s\r\n", result->url.c_str());
+            n += snprintf(buf+n, sizeof(buf)-n, "STATE: %s\r\n", result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR");
+            n += snprintf(buf+n, sizeof(buf)-n, "Server: %s\r\n", result->fetch_ip.c_str());
+            n += snprintf(buf+n, sizeof(buf)-n, "submit_time: %d\r\n", result->submit_time);
+            n += snprintf(buf+n, sizeof(buf)-n, "write_end_time: %d\r\n", result->write_end_time);
+            n += snprintf(buf+n, sizeof(buf)-n, "recv_begin_time: %d\r\n", result->recv_begin_time);
+            n += snprintf(buf+n, sizeof(buf)-n, "recv_end_time: %d\r\n", result->recv_end_time);
+            n += snprintf(buf+n, sizeof(buf)-n, "scrawltime: %s\r\n", result->scrawltime.c_str());
+            if(userdata.size() > 0)
+                n += snprintf(buf+n, sizeof(buf)-n, "userdata: %s\r\n", userdata.c_str());
+            n += snprintf(buf+n, sizeof(buf)-n, "read_data_len: %d\r\n", result->http_page_data_len);
+            n += snprintf(buf+n, sizeof(buf)-n, "headers_size: %d\r\n", headers.size());
+            n += snprintf(buf+n, sizeof(buf)-n, "body_size: %d\r\n", body.size());
+    
+            n += snprintf(buf+n, sizeof(buf)-n, "\r\n");
+            data += std::string(buf, n);
+            data += headers + "\r\n";
+            data += body + "\r\n";
+            data += "\r\n";
+        } else {
+            LOG(ERROR)<<"Unknown STORE_format, JSON and HTTP is support";
+        }
+        
+        LOG(INFO)<<"STORAGE http response "<<result->url<<" "<<(result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR")<<" "<<FLAGS_STORE_format<<" pagelen="<<result->http_page_data_len<<" body_size="<<body.size()<<" len="<<data.size();
 
         // 释放资源
         if(res) { delete res;  res = NULL; }
@@ -274,7 +320,6 @@ public:
     }
 
 private:
-
 };
 
 PageStorage::PageStorage()

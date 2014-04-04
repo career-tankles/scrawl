@@ -38,7 +38,7 @@ DECLARE_int32(STORE_nores_usleep);
 DECLARE_int32(STORE_file_max_num);
 DECLARE_uint64(STORE_file_max_size);
 DECLARE_string(STORE_file_dir);
-
+DECLARE_string(STORE_format);
 
 DECLARE_int32(WAITER_threads);
 DECLARE_int32(WAITER_usleep);

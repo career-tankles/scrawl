@@ -25,10 +25,6 @@ int ResList::pop(Res*& res) {
     return 0;
 }
 
-int ResList::size() {
-    return url_list_.size();
-}
-
 Website::Website() {
     state_ = WEBSITE_INIT;
     host_ = "";
@@ -76,6 +72,7 @@ int Website::httpRequest(http_request_t*& rqst, int& wait_ms) {
     
     rqst->res = res;
 
+    rqst->host = host_;
     //URI uri("http", host_, res->url, port_);
     URI2 uri("http", host_, res->url, port_);
     rqst->url = uri.url();

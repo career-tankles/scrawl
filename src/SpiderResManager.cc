@@ -197,7 +197,7 @@ static int _submitHttpRequest_(boost::shared_ptr<TimeWait>& timewaiter, boost::s
         if(ret != 0 || http_rqst == NULL) {
             return -2;
         }
-        LOG(INFO)<<"RES wait to fetch "<<http_rqst->url<<" ms:"<<wait_ms;
+        LOG(INFO)<<"RES wait to fetch "<<http_rqst->url<<" ms:"<<wait_ms<<" res_num="<<site->size();
         ret = timewaiter->add(wait_ms, (void*)http_rqst);
         return ret;
     }

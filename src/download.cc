@@ -117,18 +117,14 @@ public:
     
         if (c->conn_stat_ == CONN_STAT_READING) {
             if(c->recv_begin_time == 0) c->recv_begin_time = time(NULL);
-            //int bytes = 0;
-            //int n = ::read(c->sock_fd_, &bytes, sizeof(bytes));
             int n = ::read(c->sock_fd_, c->recv_buf_wptr_, c->recv_buf_left_) ;
-            fprintf(stderr, "n=%d\n", n);
             if (n > 0) {
-                //fprnitf(stderr, "read %d", );
                 c->err_code_ = 0 ;
                 c->recv_buf_wptr_ += n;
                 c->recv_buf_left_ -= n;
                 c->recv_buf_len_  += n;
                 *(c->recv_buf_wptr_) = '\0';
-                if(c->recv_buf_len_ > FLAGS_DOWN_http_page_maxsize) {
+                if(FLAGS_DOWN_http_page_maxsize > 0 && c->recv_buf_len_ > FLAGS_DOWN_http_page_maxsize) {
                     // too long
                     c->conn_stat_ = CONN_STAT_FINISH ;
                     goto handle_result ;
@@ -174,6 +170,7 @@ public:
         assert(result);
         result->rqst = rqst;
         result->res = rqst->res;
+        result->host = rqst->host;
         result->url = rqst->url;
         result->submit_time = rqst->submit_time;
         result->write_end_time = c->write_end_time;
@@ -189,8 +186,13 @@ public:
             result->http_page_data_len = c->recv_buf_len_;
         } else {
             result->state = http_result_t::HTTP_PAGE_ERROR;
-            result->http_page_data = "";
-            result->http_page_data_len = 0;
+            if(c->recv_buf_len_ > 0) {
+                result->http_page_data = std::string(c->recv_buf_, c->recv_buf_len_);
+                result->http_page_data_len = c->recv_buf_len_;
+            } else {
+                result->http_page_data = "";
+                result->http_page_data_len = 0;
+            }
         }
 
         result->fetch_ip = rqst->ip;

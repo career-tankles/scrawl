@@ -55,7 +55,7 @@ public:
 
     int add(Res* res);
     int pop(Res*& res);
-    int size();
+    size_t size() { return url_list_.size(); }
 
 private:
     std::list<Res*> url_list_;
@@ -63,6 +63,7 @@ private:
 
 // http请求
 struct http_request_t {
+    std::string host;                               // host
     std::string url;                                // url
     std::string ip;                                 // IP
     unsigned short port;                            // PORT
@@ -92,6 +93,7 @@ struct http_result_t {
         HTTP_PAGE_ERROR = 1,
     };
 
+    std::string host;                           // host
     std::string url;                            // URL
     int submit_time;                            // 请求提交时间
     int write_end_time;                         // 写结束时间
@@ -150,6 +152,8 @@ public:
     void state(STATE state) { state_ = state; }
 
     std::string& host() { return host_; }
+
+    size_t size() { return res_list_.size(); }
 
 //private:
     STATE state_;

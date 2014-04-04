@@ -25,7 +25,8 @@ DEFINE_int32(DOWN_clock_interval_us, 0, "");
 DEFINE_int32(DOWN_read_timeout_ms, 1000, "");
 DEFINE_int32(DOWN_write_timeout_ms, 500, "");
 DEFINE_int32(DOWN_defalut_fetch_interval_sec, 30, "");
-DEFINE_string(DOWN_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", "");
+//DEFINE_string(DOWN_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", "");
+DEFINE_string(DOWN_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9", "");
 
 DEFINE_int32(STORE_threads, 1, "");
 DEFINE_int32(STORE_rslt_queue_size, 5000, "");
@@ -34,6 +35,7 @@ DEFINE_int32(STORE_nores_usleep, 200, "");
 DEFINE_int32(STORE_file_max_num, 1000, "");
 DEFINE_uint64(STORE_file_max_size, 0x100000000, "");
 DEFINE_string(STORE_file_dir, "/tmp/spider/data", "must exist");
+DEFINE_string(STORE_format, "JSON", "");
 
 DEFINE_int32(WAITER_threads, 1, "");
 DEFINE_int32(WAITER_usleep, 100, "");
@@ -71,6 +73,8 @@ void output_config() {
     LOG(INFO)<<"STORE_file_max_num="<<FLAGS_STORE_file_max_num;
     LOG(INFO)<<"STORE_file_max_size="<<FLAGS_STORE_file_max_size;
     LOG(INFO)<<"STORE_file_dir="<<FLAGS_STORE_file_dir;
+    LOG(INFO)<<"STORE_format="<<FLAGS_STORE_format;
+
     LOG(INFO)<<"WAITER_threads="<<FLAGS_WAITER_threads;
     LOG(INFO)<<"WAITER_usleep="<<FLAGS_WAITER_usleep;
     LOG(INFO)<<"WAITER_nores_usleep="<<FLAGS_WAITER_nores_usleep;

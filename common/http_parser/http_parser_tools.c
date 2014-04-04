@@ -149,10 +149,6 @@ header_field_cb (http_parser *p, const char *buf, size_t len)
 
   m->last_header_element = FIELD;
 
-    fprintf(stderr, "header_field_cb: %d\n", len);
- 
-  
-
   return 0;
 }
 
@@ -279,14 +275,21 @@ int main(int argc, char** argv)
         filename = argv[1];
 
     parser = malloc(sizeof(http_parser));
-    http_parser_init(parser, HTTP_RESPONSE);
 
     char data[1024*1024];
     int fd = open(filename, O_RDONLY);
     int len = read(fd, data, sizeof(data));
 
-    size_t parsed_len = http_parser_execute(parser, &settings_count_body, data, len);
+    int plen = 0;
+    while(plen < len) {
+        http_parser_init(parser, HTTP_RESPONSE);
+        size_t parsed_len = http_parser_execute(parser, &settings_count_body, data+plen, len-plen);
+        plen += parsed_len;
+        fprintf(stderr, "len=%d paserd-len=%d num_messages=%d %d\n", len, parsed_len, num_messages, plen);
+    }
 
-    fprintf(stderr, "len=%d paserd-len=%d num_messages=%d\n", len, parsed_len, num_messages);
+    //http_parser_init(parser, HTTP_RESPONSE);
+    //parsed_len = http_parser_execute(parser, &settings_count_body, data+parsed_len, len-parsed_len);
+    //fprintf(stderr, "len=%d paserd-len=%d num_messages=%d\n", len, parsed_len, num_messages);
     
 }

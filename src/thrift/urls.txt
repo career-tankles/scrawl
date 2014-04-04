@@ -1,2 +1,1 @@
-#http://m.baidu.com/s?word=天天酷跑
-http://www.baidu.com/
+天天酷跑
