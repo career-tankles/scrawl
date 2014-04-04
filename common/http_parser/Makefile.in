@@ -35,7 +35,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = http_parser_tools$(EXEEXT) t$(EXEEXT)
+noinst_PROGRAMS = http_parser_tools$(EXEEXT) HttpParser_t$(EXEEXT)
 subdir = common/http_parser
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -48,17 +48,18 @@ CONFIG_CLEAN_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 AR = ar
 ARFLAGS = cru
-libhttp_parser_a_AR = $(AR) $(ARFLAGS)
-libhttp_parser_a_LIBADD =
-am_libhttp_parser_a_OBJECTS = http_parser.$(OBJEXT)
-libhttp_parser_a_OBJECTS = $(am_libhttp_parser_a_OBJECTS)
+libHttpParser_a_AR = $(AR) $(ARFLAGS)
+libHttpParser_a_LIBADD =
+am_libHttpParser_a_OBJECTS = HttpParser.$(OBJEXT) \
+	http_parser.$(OBJEXT)
+libHttpParser_a_OBJECTS = $(am_libHttpParser_a_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
+am_HttpParser_t_OBJECTS = HttpParser_t.$(OBJEXT)
+HttpParser_t_OBJECTS = $(am_HttpParser_t_OBJECTS)
+HttpParser_t_DEPENDENCIES = libHttpParser.a
 am_http_parser_tools_OBJECTS = http_parser_tools.$(OBJEXT)
 http_parser_tools_OBJECTS = $(am_http_parser_tools_OBJECTS)
 http_parser_tools_DEPENDENCIES = libhttp_parser.a
-am_t_OBJECTS = t.$(OBJEXT)
-t_OBJECTS = $(am_t_OBJECTS)
-t_DEPENDENCIES = libhttp_parser.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -71,10 +72,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libhttp_parser_a_SOURCES) $(http_parser_tools_SOURCES) \
-	$(t_SOURCES)
-DIST_SOURCES = $(libhttp_parser_a_SOURCES) \
-	$(http_parser_tools_SOURCES) $(t_SOURCES)
+SOURCES = $(libHttpParser_a_SOURCES) $(HttpParser_t_SOURCES) \
+	$(http_parser_tools_SOURCES)
+DIST_SOURCES = $(libHttpParser_a_SOURCES) $(HttpParser_t_SOURCES) \
+	$(http_parser_tools_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -155,12 +156,12 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-noinst_LIBRARIES = libhttp_parser.a
-libhttp_parser_a_SOURCES = http_parser.c
-http_parser_tools_SOURCES = http_parser_tools.c
+noinst_LIBRARIES = libHttpParser.a
+libHttpParser_a_SOURCES = HttpParser.cc http_parser.c 
+http_parser_tools_SOURCES = http_parser_tools.c 
 http_parser_tools_LDADD = libhttp_parser.a
-t_SOURCES = t.cc
-t_LDADD = libhttp_parser.a
+HttpParser_t_SOURCES = HttpParser_t.cc
+HttpParser_t_LDADD = libHttpParser.a
 all: all-am
 
 .SUFFIXES:
@@ -197,19 +198,19 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libhttp_parser.a: $(libhttp_parser_a_OBJECTS) $(libhttp_parser_a_DEPENDENCIES) 
-	-rm -f libhttp_parser.a
-	$(libhttp_parser_a_AR) libhttp_parser.a $(libhttp_parser_a_OBJECTS) $(libhttp_parser_a_LIBADD)
-	$(RANLIB) libhttp_parser.a
+libHttpParser.a: $(libHttpParser_a_OBJECTS) $(libHttpParser_a_DEPENDENCIES) 
+	-rm -f libHttpParser.a
+	$(libHttpParser_a_AR) libHttpParser.a $(libHttpParser_a_OBJECTS) $(libHttpParser_a_LIBADD)
+	$(RANLIB) libHttpParser.a
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+HttpParser_t$(EXEEXT): $(HttpParser_t_OBJECTS) $(HttpParser_t_DEPENDENCIES) 
+	@rm -f HttpParser_t$(EXEEXT)
+	$(CXXLINK) $(HttpParser_t_LDFLAGS) $(HttpParser_t_OBJECTS) $(HttpParser_t_LDADD) $(LIBS)
 http_parser_tools$(EXEEXT): $(http_parser_tools_OBJECTS) $(http_parser_tools_DEPENDENCIES) 
 	@rm -f http_parser_tools$(EXEEXT)
 	$(LINK) $(http_parser_tools_LDFLAGS) $(http_parser_tools_OBJECTS) $(http_parser_tools_LDADD) $(LIBS)
-t$(EXEEXT): $(t_OBJECTS) $(t_DEPENDENCIES) 
-	@rm -f t$(EXEEXT)
-	$(CXXLINK) $(t_LDFLAGS) $(t_OBJECTS) $(t_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -217,9 +218,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HttpParser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HttpParser_t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http_parser_tools.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/t.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
