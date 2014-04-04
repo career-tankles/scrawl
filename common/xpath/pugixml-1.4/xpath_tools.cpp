@@ -1,16 +1,16 @@
 #include "pugixml.hpp"
 
-       #include <sys/types.h>
-       #include <sys/stat.h>
-          #include <stdio.h>
-       #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <time.h>
 #include <vector>
-//#include <sstream.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -346,10 +346,8 @@ int load_tpls(std::string file, std::map<std::string, struct cfg_tpl*>& maps_tpl
                         ret = parse_cfg(cfg_data.c_str(), &c);
                         assert(ret == 0);
 
-                        std::cout<<"asdfasdf"<<v[0]<<" "<<v[1]<<std::endl;
+                        std::cout<<"conf: "<<v[0]<<" "<<v[1]<<std::endl;
                         maps_tpls.insert(std::pair<std::string, struct cfg_tpl*>(v[0], t));
-
-                        
                     }
                 }
                 while(p<buf+left) {
@@ -370,11 +368,16 @@ int load_tpls(std::string file, std::map<std::string, struct cfg_tpl*>& maps_tpl
 
 // 根据c解析模板解析http_data网页数据，生成JSON数据json_str
 // @return 0: success  <0: failed
-int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json_str) {
+int extract_http_page(const char* html_data, struct cfg_tpl& c, std::string& json_str) {
 
     pugi::xml_document doc;
-    if(!doc.load(html_data.c_str())) {
-        std::cout<<"ERROR: doc.load "<<std::endl;
+    pugi::xml_parse_result parse_res = doc.load(html_data);
+    if(!parse_res) {
+        std::cout<<"xml_document load error: "<<parse_res.description()<<" "<<parse_res.offset<<std::endl;
+        int fd = open("a.txt", O_WRONLY|O_CREAT);
+        assert(fd);
+        write(fd, html_data, strlen(html_data));
+        close(fd);
         return -1;
     }
 
@@ -388,7 +391,9 @@ int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json
 
     cJSON* jnew_results = cJSON_CreateArray();
 
+
     pugi::xpath_node_set nodes = doc.select_nodes(c.xpath.c_str());
+    std::cout<<"c.xpath="<<c.xpath<<" size="<<nodes.size()<<std::endl;
     for(int i=0; i<nodes.size(); i++) {
         pugi::xml_node node = nodes[i].node();
         //node.print(std::cout);
@@ -475,192 +480,99 @@ int parse_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json
     return 0;
 }
 
+int extract_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json_str) {
+    return extract_http_page(html_data.c_str(), c, json_str);
+}
+
+void parseJson(const char* file, std::map<std::string, struct cfg_tpl*>& maps_tpls) {
+    int fd = open(file, O_RDONLY);
+    if(fd == -1) {
+        fprintf(stderr, "Error: %s %d-%s\n", file, errno, strerror(errno));
+        return ;
+    }
+
+    int n = 0, len = 0;
+    char buf[1024*1024];
+    while((n=read(fd, buf+len, sizeof(buf)-len-1)) > 0) {
+        len += n;
+        const char* p = buf;
+        while(len > 0) {
+            const char* return_parse_end = NULL;
+            cJSON* obj = cJSON_ParseWithOpts(p, &return_parse_end, 0); // obj3!=NULL情况下，return_parse_end通常不为NULL
+            if(obj == NULL)
+                break; 
+            
+            cJSON* jinfo = cJSON_GetObjectItem(obj, "info");
+            assert(jinfo);
+            cJSON* jurl = cJSON_GetObjectItem(jinfo, "url");
+            assert(jurl);
+            cJSON* jhost = cJSON_GetObjectItem(jinfo, "host");
+            assert(jhost);
+            cJSON* jbody = cJSON_GetObjectItem(obj, "body");
+            assert(jbody);
+
+
+            std::cout<<jurl->valuestring<<std::endl;
+            //std::cout<<jbody->valuestring<<std::endl;
+            
+            std::string host = jhost->valuestring;
+            std::cout<<"--"<<jhost->valuestring<<"--"<<std::endl;
+            
+            if(maps_tpls.count(host) > 0) {
+                struct cfg_tpl*& c = maps_tpls[host];
+                std::string return_json_str("");
+                int ret = extract_http_page(jbody->valuestring, *c, return_json_str) ;
+                assert(ret);
+                if(ret == 0)
+                    std::cout<<return_json_str<<std::endl;
+            }
+            cJSON_Delete(obj);
+            assert(return_parse_end != NULL);   //
+            len -= (return_parse_end-p);
+            p = return_parse_end;
+            
+        }   
+        if(len > 0) {
+            memmove(buf, p, len);
+        }   
+    }
+    close(fd);
+}
 
 int main()
 {
 
-    std::string cfg_data ;
-    int ret = load("tpl.m.baidu.com.conf", cfg_data);
-    assert(ret == 0);
-
-    //struct cfg_tpl c;
-    //ret = parse_cfg(cfg_data.c_str(), &c);
-    //assert(ret == 0);
-
-    std::string html_data ;
-    ret = load("a.html", html_data);
-    assert(ret == 0);
-
     std::map<std::string, struct cfg_tpl*> maps_tpls;
-    ret = load_tpls("tpls.conf", maps_tpls) ;
+    int ret = load_tpls("tpls.conf", maps_tpls) ;
     assert(ret == 0);
-    
-    std::string host = "m.baidu.com";
-    if(maps_tpls.count(host)==0)
-        std::cout<<"not exit host"<<std::endl;
-    else {
-        struct cfg_tpl*& c = maps_tpls[host];
 
-        std::string return_json_str;
-        std::cout<<"parse_http_page"<<std::endl;
-        ret = parse_http_page(html_data, *c, return_json_str) ;
+    if(0) {
+        //parseJson("/tmp/spider/data/1", maps_tpls);
+        parseJson("/tmp/spider/data/total", maps_tpls);
+    }
+
+    if(1) {
+        std::string cfg_data ;
+        ret = load("tpl.m.baidu.com.conf", cfg_data);
         assert(ret == 0);
-        
-        std::cout<<return_json_str<<std::endl;
-    }
     
-   
-
-/*
-    {
-        //const char* _xpath_ = "/html/body/div/div/div[@class='resitem' and @srcid='81']/a/@href";
-        const char* _xpath_ = "/html/body/div/div/div[@class='resitem' and @srcid='81']/a/@href";
-        std::string attr_str;
-        AUTO_NODE_ATTR_BY_XPATH(doc, _xpath_, attr_str);
-        cout<<"-----value="<<attr_str<<std::endl;
-
-        //return 0;
-    }
-
-    {
-
-        pugi::xpath_node node_tmp = doc.select_single_node("/html/body/div/div/div[@class='resitem' and @srcid='81']");
-
-        pugi::xpath_node node_href = node_tmp.node().select_single_node("a");
-        NODE_ATTR_VALUE_string(node_href.node(), "href", str_href, "");
-        NODE_CHILDREN_RICHTEXT(node_href.node(), abs_href);
-
-        pugi::xpath_node node_abs = node_tmp.node().select_single_node("div[@class='abs']/div[@class='wa-baikeimg-info']");
-        NODE_CHILDREN_RICHTEXT(node_abs.node(), abs_str);
-
-        std::cout<<"-----HREF: "<<str_href<<std::endl;
-        std::cout<<"-----ANCHOR: "<<abs_href<<std::endl;
-        std::cout<<"-----ABS: "<<abs_str<<std::endl;
-        
-        pugi::xpath_node node_abs_catalogs = node_tmp.node().select_single_node("div[@class='abs']/div[@class='wa-baikeimg-catalogs']");
-        NODE_CHILDREN_RICHTEXT(node_abs_catalogs.node(), abs_catalogs_str);
-        //std::cout<<"-----ABS: "<<abs_catalogs_str<<std::endl;
-        return 0;
-    }
-
-    const char* xpath_reswrap = "//div[@class='resitem']";
-    NODE_SET_XPATH(doc, xpath_reswrap, resitems);
-
-    NODE_FOREACH(node, resitems);
-        std::cout<<"PATH:"<<node.path()<<std::endl;
-        std::cout<<"----- "<<node.offset_debug()<<std::endl;
-
-        NODE_ATTR_VALUE_string(node, "srcid", srcid, "");
-        NODE_ATTR_VALUE_string(node, "tpl", tpl, "");
-        if(!srcid.empty() && srcid == "81") {
-
-            // <a>的href属性
-            NODE_CHILD(node, "a", node_a) 
-            NODE_ATTR_VALUE(node_a, "href", href, NULL);
-
-            // <a>的富文本信息
-            NODE_CHILDREN_RICHTEXT(node_a, a_str);
-
-            NODE_CHILD(node, "div", node_abs) 
-            NODE_CHILD(node_abs, "div", node_subdiv) 
-            NODE_CHILDREN_RICHTEXT(node_subdiv, abs_str);
+        std::string html_data ;
+        ret = load("b.html", html_data);
+        assert(ret == 0);
     
-            std::cout<<href<<"  ANCHOR="<<a_str<<std::endl;
-            std::cout<<abs_str<<std::endl;
-            std::cout<<"srcid=81"<<std::endl;
-        
-        } else if(!srcid.empty() && srcid == "realtime") {
-             // <a>的href属性
-            NODE_CHILD(node, "a", node_a) 
-            NODE_ATTR_VALUE(node_a, "href", href, NULL);
-
-            // <a>的富文本信息
-            NODE_CHILDREN_RICHTEXT(node_a, a_str);
-
-            NODE_CHILD(node, "div", node_abs) 
-            NODE_FIRST_CHILD(node_abs, "a", node_suba1); 
-            NODE_NEXT(node_suba1, "a", node_suba2); 
-            NODE_CHILDREN_RICHTEXT(node_suba1, abs_str);
-            NODE_CHILDREN_RICHTEXT(node_suba2, abs_str2);
-           
-            std::cout<<href<<"  ANCHOR="<<a_str<<std::endl;
-            std::cout<<abs_str<<std::endl;
-            std::cout<<abs_str2<<std::endl;
-            std::cout<<"srcid=realtime"<<std::endl;
-        } else if(!srcid.empty() && srcid == "map") {
-            // <a>的href属性
-            NODE_CHILD(node, "a", node_a) 
-            NODE_ATTR_VALUE(node_a, "href", href, NULL);
-
-            // <a>的富文本信息
-            NODE_CHILDREN_RICHTEXT(node_a, a_str);
-            NODE_CHILD(node, "div", node_abs) 
-            NODE_CHILDREN_RICHTEXT(node_abs, abs_str);
+        std::string host = "m.baidu.com";
+        if(maps_tpls.count(host)==0)
+            std::cout<<"not exit host"<<std::endl;
+        else {
+            struct cfg_tpl*& c = maps_tpls[host];
     
-            std::cout<<href<<" ANCHOR="<<a_str<<std::endl;
-            std::cout<<abs_str<<std::endl;
-
-            std::cout<<"srcid=map"<<std::endl;
-        } else {
-            // <a>的序列化
-            //NODE_SERIALIZATION_string(node_a, node_a_str);
-            //std::cout<<node_a_str<<std::endl;
-
-            // <a>的href属性
-            NODE_CHILD(node, "a", node_a) 
-            NODE_ATTR_VALUE(node_a, "href", href, NULL);
-
-            // <a>的富文本信息
-            NODE_CHILDREN_RICHTEXT(node_a, a_str);
-            NODE_CHILD(node, "div", node_abs) 
-            NODE_CHILDREN_RICHTEXT(node_abs, abs_str);
-    
-            std::cout<<href<<" ANCHOR="<<a_str<<std::endl;
-            std::cout<<abs_str<<std::endl;
-            std::cout<<"DEFUALT"<<std::endl;
+            std::string return_json_str;
+            std::cout<<"extract_http_page"<<std::endl;
+            ret = extract_http_page(html_data, *c, return_json_str) ;
+            assert(ret == 0);
+            
+            std::cout<<return_json_str<<std::endl;
         }
-
-        //NODE_HAS_ATTR(node_a, "href", has_href);
-        //NODE_HAS_ATTR(node_a, "href2", has_href2);
-        //std::cout<<"))))))))))))))))))): "<<has_href<<" "<<has_href2<<std::endl;
-        
-        getchar();
-
-    NODE_FOREACH_END();
-    close(fd);
-    return 0;
-
-    pugi::xml_document doc;
-    if (!doc.load_file("xgconsole.xml")) return -1;
-
-//[code_xpath_query
-    // Select nodes via compiled query
-    pugi::xpath_query query_remote_tools("/Profile/Tools/Tool[@AllowRemote='true']");
-
-    pugi::xpath_node_set tools = query_remote_tools.evaluate_node_set(doc);
-    std::cout << "Remote tool: "<<std::endl;
-    
-    tools[1].node().print(std::cout);
-    tools[2].node().print(std::cout);
-
-
-
-    // Evaluate numbers via compiled query
-    pugi::xpath_query query_timeouts("sum(//Tool/@Timeout)");
-    std::cout << query_timeouts.evaluate_number(doc) << std::endl;
-
-    // Evaluate strings via compiled query for different context nodes
-    pugi::xpath_query query_name_valid("string-length(substring-before(@Filename, '_')) > 0 and @OutputFileMasks");
-    pugi::xpath_query query_name("concat(substring-before(@Filename, '_'), ' produces ', @OutputFileMasks)");
-
-    for (pugi::xml_node tool = doc.first_element_by_path("Profile/Tools/Tool"); tool; tool = tool.next_sibling())
-    {
-        std::string s = query_name.evaluate_string(tool);
-
-        if (query_name_valid.evaluate_boolean(tool)) std::cout << s << std::endl;
     }
-*/
-
 }
 
-// vim:et
