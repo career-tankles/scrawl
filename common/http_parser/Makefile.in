@@ -59,7 +59,7 @@ HttpParser_t_OBJECTS = $(am_HttpParser_t_OBJECTS)
 HttpParser_t_DEPENDENCIES = libHttpParser.a
 am_http_parser_tools_OBJECTS = http_parser_tools.$(OBJEXT)
 http_parser_tools_OBJECTS = $(am_http_parser_tools_OBJECTS)
-http_parser_tools_DEPENDENCIES = libhttp_parser.a
+http_parser_tools_DEPENDENCIES = libHttpParser.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -159,7 +159,7 @@ target_alias = @target_alias@
 noinst_LIBRARIES = libHttpParser.a
 libHttpParser_a_SOURCES = HttpParser.cc http_parser.c 
 http_parser_tools_SOURCES = http_parser_tools.c 
-http_parser_tools_LDADD = libhttp_parser.a
+http_parser_tools_LDADD = libHttpParser.a
 HttpParser_t_SOURCES = HttpParser_t.cc
 HttpParser_t_LDADD = libHttpParser.a
 all: all-am
