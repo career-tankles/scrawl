@@ -374,10 +374,6 @@ int extract_http_page(const char* html_data, struct cfg_tpl& c, std::string& jso
     pugi::xml_parse_result parse_res = doc.load(html_data);
     if(!parse_res) {
         std::cout<<"xml_document load error: "<<parse_res.description()<<" "<<parse_res.offset<<std::endl;
-        int fd = open("a.txt", O_WRONLY|O_CREAT);
-        assert(fd);
-        write(fd, html_data, strlen(html_data));
-        close(fd);
         return -1;
     }
 
@@ -522,7 +518,7 @@ void parseJson(const char* file, std::map<std::string, struct cfg_tpl*>& maps_tp
                 struct cfg_tpl*& c = maps_tpls[host];
                 std::string return_json_str("");
                 int ret = extract_http_page(jbody->valuestring, *c, return_json_str) ;
-                assert(ret);
+                assert(ret == 0);
                 if(ret == 0)
                     std::cout<<return_json_str<<std::endl;
             }
@@ -546,12 +542,12 @@ int main()
     int ret = load_tpls("tpls.conf", maps_tpls) ;
     assert(ret == 0);
 
-    if(0) {
+    if(1) {
         //parseJson("/tmp/spider/data/1", maps_tpls);
         parseJson("/tmp/spider/data/total", maps_tpls);
     }
 
-    if(1) {
+    if(0) {
         std::string cfg_data ;
         ret = load("tpl.m.baidu.com.conf", cfg_data);
         assert(ret == 0);

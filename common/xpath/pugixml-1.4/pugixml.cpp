@@ -2519,17 +2519,17 @@ PUGI__NS_BEGIN
 									a->name = s; // Save the offset.
 
 									PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol)); // Scan for a terminator.
-                                        if (*s == 0) { fprintf(stderr, "GGGG\n");}
+                                    //if (*s == 0) { fprintf(stderr, "GGGG\n");}
 									PUGI__CHECK_ERROR(status_bad_attribute, s); //$ redundant, left for performance
 
 									PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
-                                        if (*s == 0) { fprintf(stderr, "FFFF\n");}
+                                    //if (*s == 0) { fprintf(stderr, "FFFF\n");}
 									PUGI__CHECK_ERROR(status_bad_attribute, s); //$ redundant, left for performance
 
 									if (PUGI__IS_CHARTYPE(ch, ct_space))
 									{
 										PUGI__SKIPWS(); // Eat any whitespace.
-                                        if (*s == 0) { fprintf(stderr, "EEEEE\n");}
+                                        //if (*s == 0) { fprintf(stderr, "EEEEE\n");}
 										PUGI__CHECK_ERROR(status_bad_attribute, s); //$ redundant, left for performance
 
 										ch = *s;
@@ -2548,13 +2548,13 @@ PUGI__NS_BEGIN
 
 											s = strconv_attribute(s, ch);
 										
-											if (!s) { fprintf(stderr, "status_bad_attribute DDDD\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
+											//if (!s) { fprintf(stderr, "status_bad_attribute DDDD\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
 
 											// After this line the loop continues from the start;
 											// Whitespaces, / and > are ok, symbols and EOF are wrong,
 											// everything else will be detected
 											if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) {
-                                                fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
+                                                //fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
                                                 continue;
                                 
                                                 PUGI__THROW_ERROR(status_bad_attribute, s);
@@ -2572,12 +2572,12 @@ PUGI__NS_BEGIN
                                             continue;
                                         }
 										else {
-                                            fprintf(stderr, "status_bad_attribute AAA %s\n", std::string(s, 20).c_str());
+                                            //fprintf(stderr, "status_bad_attribute AAA %s\n", std::string(s, 20).c_str());
                                             PUGI__THROW_ERROR(status_bad_attribute, s);
                                         }
 									}
 									else {
-                                        fprintf(stderr, "status_bad_attribute BBB %s\n", std::string(s, 20).c_str());
+                                        //fprintf(stderr, "status_bad_attribute BBB %s\n", std::string(s, 20).c_str());
                                         PUGI__THROW_ERROR(status_bad_attribute, s);
                                     }
 								}
