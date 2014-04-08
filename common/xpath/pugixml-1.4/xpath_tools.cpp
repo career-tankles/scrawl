@@ -257,7 +257,7 @@ int parse_cfg(cJSON* jroot, struct cfg_tpl* tpl) {
 
         cJSON* j_key_= cJSON_GetObjectItem(jresult, "_key_");
         if(j_key_== NULL ) return -5;
-        //printf("   _key_:%s\n", j_key_->valuestring); 
+        printf("   _key_:%s\n", j_key_->valuestring); 
 
         result_tpl result;
         result._key_ = j_key_->valuestring;
@@ -369,6 +369,8 @@ int load_tpls(std::string file, std::map<std::string, struct cfg_tpl*>& maps_tpl
 // 根据c解析模板解析http_data网页数据，生成JSON数据json_str
 // @return 0: success  <0: failed
 int extract_http_page(const char* html_data, struct cfg_tpl& c, std::string& json_str) {
+   
+    std::cout<<"extract_http_page AAAAAAAAAAAAAAAAAAA"<<std::endl;
 
     pugi::xml_document doc;
     pugi::xml_parse_result parse_res = doc.load(html_data);
@@ -401,7 +403,6 @@ int extract_http_page(const char* html_data, struct cfg_tpl& c, std::string& jso
 
         if(c.results.count(key) == 0) {
             std::string invalid_val = "WARNING: key=" + key + " handler not set!";
-            printf("%s\n", key.c_str());
             cJSON_AddStringToObject(jnew_result, "invalid", invalid_val.c_str());
             cJSON_AddItemToArray(jnew_results, jnew_result);
             
@@ -553,7 +554,7 @@ int main()
         assert(ret == 0);
     
         std::string html_data ;
-        ret = load("b.html", html_data);
+        ret = load("a.html", html_data);
         assert(ret == 0);
     
         std::string host = "m.baidu.com";
@@ -569,6 +570,13 @@ int main()
             
             std::cout<<return_json_str<<std::endl;
         }
+    }
+
+    std::map<std::string, struct cfg_tpl*>::iterator iter = maps_tpls.begin();
+    for(; iter!=maps_tpls.end(); iter++) {
+        struct cfg_tpl* tpl = iter->second ;
+        delete tpl;
+        tpl = NULL;
     }
 }
 
