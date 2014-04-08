@@ -2483,6 +2483,16 @@ PUGI__NS_BEGIN
 				LOC_TAG:
 					if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) // '<#...'
 					{
+                        if(strncmp(s, "script", strlen("script")) == 0) {
+				            PUGI__SCANFOR(strncmp(s, "</script>", strlen("</script>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
+                            s += strlen("</script>");
+                            continue;
+                        } else if (strncmp(s, "style", strlen("style")) == 0) {
+				            PUGI__SCANFOR(strncmp(s, "</style>", strlen("</style>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
+                            s += strlen("</style>");
+                            continue;
+                        }
+
 						PUGI__PUSHNODE(node_element); // Append a new node to the tree.
 
 						cursor->name = s;
@@ -2509,14 +2519,17 @@ PUGI__NS_BEGIN
 									a->name = s; // Save the offset.
 
 									PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol)); // Scan for a terminator.
+                                        if (*s == 0) { fprintf(stderr, "GGGG\n");}
 									PUGI__CHECK_ERROR(status_bad_attribute, s); //$ redundant, left for performance
 
 									PUGI__ENDSEG(); // Save char in 'ch', terminate & step over.
+                                        if (*s == 0) { fprintf(stderr, "FFFF\n");}
 									PUGI__CHECK_ERROR(status_bad_attribute, s); //$ redundant, left for performance
 
 									if (PUGI__IS_CHARTYPE(ch, ct_space))
 									{
 										PUGI__SKIPWS(); // Eat any whitespace.
+                                        if (*s == 0) { fprintf(stderr, "EEEEE\n");}
 										PUGI__CHECK_ERROR(status_bad_attribute, s); //$ redundant, left for performance
 
 										ch = *s;
@@ -2535,16 +2548,38 @@ PUGI__NS_BEGIN
 
 											s = strconv_attribute(s, ch);
 										
-											if (!s) PUGI__THROW_ERROR(status_bad_attribute, a->value);
+											if (!s) { fprintf(stderr, "status_bad_attribute DDDD\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
 
 											// After this line the loop continues from the start;
 											// Whitespaces, / and > are ok, symbols and EOF are wrong,
 											// everything else will be detected
-											if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) PUGI__THROW_ERROR(status_bad_attribute, s);
-										}
-										else PUGI__THROW_ERROR(status_bad_attribute, s);
+											if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) {
+                                                fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
+                                                continue;
+                                
+                                                PUGI__THROW_ERROR(status_bad_attribute, s);
+                    
+                }
+										} else if(*s == '{' || *s == '(') {
+                                            // skip '{}'
+                                            char endch = '}';
+                                            if(*s == '(') endch = ')';
+                                            s ++;
+                                            int _n_ = 1;
+                                            while(s && *s != '\0' && _n_ > 0) {
+                                                if(*s++ == endch) _n_--;
+                                            }
+                                            continue;
+                                        }
+										else {
+                                            fprintf(stderr, "status_bad_attribute AAA %s\n", std::string(s, 20).c_str());
+                                            PUGI__THROW_ERROR(status_bad_attribute, s);
+                                        }
 									}
-									else PUGI__THROW_ERROR(status_bad_attribute, s);
+									else {
+                                        fprintf(stderr, "status_bad_attribute BBB %s\n", std::string(s, 20).c_str());
+                                        PUGI__THROW_ERROR(status_bad_attribute, s);
+                                    }
 								}
 								else if (*s == '/')
 								{
@@ -2598,13 +2633,20 @@ PUGI__NS_BEGIN
 					else if (*s == '/')
 					{
 						++s;
-
+                        char_t* s_begin = s;
+                      SkipAndNextTag:
+                        s = s_begin;
 						char_t* name = cursor->name;
 						if (!name) PUGI__THROW_ERROR(status_end_element_mismatch, s);
 						
 						while (PUGI__IS_CHARTYPE(*s, ct_symbol))
 						{
-							if (*s++ != *name++) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+							if (*s++ != *name++) { 
+                                PUGI__POPNODE(); // Pop.
+                                
+                                goto SkipAndNextTag;
+                                PUGI__THROW_ERROR(status_end_element_mismatch, s);
+                            }
 						}
 
 						if (*name)
