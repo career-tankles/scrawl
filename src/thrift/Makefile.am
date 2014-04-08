@@ -15,7 +15,4 @@ noinst_LIBRARIES = libspider_webservice.a
 
 libspider_webservice_a_SOURCES = gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
 
-noinst_PROGRAMS = client
-client_SOURCES = client.cpp
-client_LDADD   = libspider_webservice.a
 

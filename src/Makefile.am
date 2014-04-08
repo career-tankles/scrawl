@@ -1,5 +1,5 @@
 
-SUBDIRS = thrift uri
+SUBDIRS = thrift uri client extractor
 
 CXXFLAGS = -g
 

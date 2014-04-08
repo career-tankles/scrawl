@@ -168,7 +168,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = thrift uri
+SUBDIRS = thrift uri client extractor
 top_dir = ..
 AM_CPPFLAGS = -g \
                 -I/usr/local/boost-1.50.0/include \

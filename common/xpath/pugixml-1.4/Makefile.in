@@ -14,7 +14,6 @@
 
 @SET_MAKE@
 
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -35,7 +34,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = xpath_tools$(EXEEXT)
 subdir = common/xpath/pugixml-1.4
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -48,15 +46,10 @@ CONFIG_CLEAN_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 AR = ar
 ARFLAGS = cru
-libxpath_a_AR = $(AR) $(ARFLAGS)
-libxpath_a_LIBADD =
-am_libxpath_a_OBJECTS = pugixml.$(OBJEXT)
-libxpath_a_OBJECTS = $(am_libxpath_a_OBJECTS)
-PROGRAMS = $(noinst_PROGRAMS)
-am_xpath_tools_OBJECTS = xpath_tools.$(OBJEXT)
-xpath_tools_OBJECTS = $(am_xpath_tools_OBJECTS)
-xpath_tools_DEPENDENCIES = libxpath.a \
-	$(top_dir)/common/cJSON/libcJSON.a
+libpugixml_a_AR = $(AR) $(ARFLAGS)
+libpugixml_a_LIBADD =
+am_libpugixml_a_OBJECTS = pugixml.$(OBJEXT)
+libpugixml_a_OBJECTS = $(am_libpugixml_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -65,8 +58,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libxpath_a_SOURCES) $(xpath_tools_SOURCES)
-DIST_SOURCES = $(libxpath_a_SOURCES) $(xpath_tools_SOURCES)
+SOURCES = $(libpugixml_a_SOURCES)
+DIST_SOURCES = $(libpugixml_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -84,7 +77,7 @@ CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXDEPMODE = @CXXDEPMODE@
-CXXFLAGS = -g -I$(top_dir)/common/cJSON
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -147,11 +140,8 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-top_dir = ../../..
-noinst_LIBRARIES = libxpath.a
-libxpath_a_SOURCES = pugixml.cpp
-xpath_tools_SOURCES = xpath_tools.cpp
-xpath_tools_LDADD = libxpath.a $(top_dir)/common/cJSON/libcJSON.a
+noinst_LIBRARIES = libpugixml.a
+libpugixml_a_SOURCES = pugixml.cpp
 all: all-am
 
 .SUFFIXES:
@@ -188,16 +178,10 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-libxpath.a: $(libxpath_a_OBJECTS) $(libxpath_a_DEPENDENCIES) 
-	-rm -f libxpath.a
-	$(libxpath_a_AR) libxpath.a $(libxpath_a_OBJECTS) $(libxpath_a_LIBADD)
-	$(RANLIB) libxpath.a
-
-clean-noinstPROGRAMS:
-	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-xpath_tools$(EXEEXT): $(xpath_tools_OBJECTS) $(xpath_tools_DEPENDENCIES) 
-	@rm -f xpath_tools$(EXEEXT)
-	$(CXXLINK) $(xpath_tools_LDFLAGS) $(xpath_tools_OBJECTS) $(xpath_tools_LDADD) $(LIBS)
+libpugixml.a: $(libpugixml_a_OBJECTS) $(libpugixml_a_DEPENDENCIES) 
+	-rm -f libpugixml.a
+	$(libpugixml_a_AR) libpugixml.a $(libpugixml_a_OBJECTS) $(libpugixml_a_LIBADD)
+	$(RANLIB) libpugixml.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -206,7 +190,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pugixml.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xpath_tools.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -300,7 +283,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LIBRARIES)
 installdirs:
 install: install-am
 install-exec: install-exec-am
@@ -328,8 +311,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-noinstLIBRARIES clean-noinstPROGRAMS \
-	mostlyclean-am
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -377,12 +359,12 @@ ps-am:
 uninstall-am: uninstall-info-am
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-noinstLIBRARIES clean-noinstPROGRAMS ctags distclean \
-	distclean-compile distclean-generic distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-exec install-exec-am \
-	install-info install-info-am install-man install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	clean-noinstLIBRARIES ctags distclean distclean-compile \
+	distclean-generic distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-info-am

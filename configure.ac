@@ -10,7 +10,10 @@ AC_CONFIG_FILES([
     src/Makefile
     src/uri/Makefile
     src/thrift/Makefile
+    src/client/Makefile
+    src/extractor/Makefile
     common/Makefile
+    common/md5/Makefile
     common/utils/Makefile
     common/http_parser/Makefile
     common/cJSON/Makefile
