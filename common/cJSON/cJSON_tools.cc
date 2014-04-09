@@ -40,7 +40,7 @@ int load(const char* file, std::string& data) {
 }
 
 void parse(const char* file) {
-    int fd = open(file, o_rdonly);
+    int fd = open(file, O_RDONLY);
     if(fd == -1) {
         fprintf(stderr, "error: %s %d-%s\n", file, errno, strerror(errno));
         return ;
@@ -52,15 +52,15 @@ void parse(const char* file) {
         len += n;
         const char* p = buf;
         while(len > 0) {
-            const char* return_parse_end = null;
-            cjson* obj3 = cjson_parsewithopts(p, &return_parse_end, 0); // obj3!=null情况下，return_parse_end通常不为null
-            if(obj3 == null)
+            const char* return_parse_end = NULL;
+            cJSON* obj3 = cJSON_ParseWithOpts(p, &return_parse_end, 0); // obj3!=null情况下，return_parse_end通常不为null
+            if(obj3 == NULL)
                 break;
 
-            cjson* jlocation = cjson_getobjectitem(obj3, "info");
+            cJSON* jlocation = cJSON_GetObjectItem(obj3, "info");
 
-            cjson_delete(obj3);
-            assert(return_parse_end != null);   //
+            cJSON_Delete(obj3);
+            assert(return_parse_end != NULL);   //
             len -= (return_parse_end-p);
             p = return_parse_end;
 
