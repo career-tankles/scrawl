@@ -137,12 +137,12 @@ namespace uripp {
         v = t;
         return true;
     }
-#	ifndef _WIN32
+#ifndef _WIN32
     std::string convert(ptrdiff_t v) {
-		if (sizeof(ptrdiff_t) == sizeof(unsigned int)) return convert((unsigned int)v);
-		return convert((unsigned long long int)v);
+        if (sizeof(ptrdiff_t) == sizeof(unsigned int)) return convert((unsigned int)v);
+        return convert((unsigned long long int)v);
     }
-#	endif
+#endif
     bool convert(const std::string& s, double& v) {
         if (s.empty())
             return false;

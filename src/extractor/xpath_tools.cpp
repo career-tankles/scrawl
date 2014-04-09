@@ -8,6 +8,7 @@
 #include <time.h>
 #include <vector>
 #include <fcntl.h>
+#include <unistd.h>
 #include <string.h>
 #include <iostream>
 #include <string>
@@ -538,25 +539,29 @@ void parseJson(const char* file, std::map<std::string, struct cfg_tpl*>& maps_tp
     close(fd);
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    if(argc != 3) {
+        fprintf(stderr, "Usage: %s --HTML <html-file>\n %s --JSON <json-file>\n", argv[0], argv[0]);
+        exit(-1);
+    }
 
     std::map<std::string, struct cfg_tpl*> maps_tpls;
     int ret = load_tpls("tpls.conf", maps_tpls) ;
     assert(ret == 0);
 
-    if(1) {
+    if(strcmp(argv[1], "--JSON") == 0) {
         //parseJson("/tmp/spider/data/1", maps_tpls);
-        parseJson("/tmp/spider/data/total", maps_tpls);
+        parseJson(argv[2], maps_tpls);
     }
 
-    if(0) {
+    if(strcmp(argv[1], "--HTML") == 0) {
         std::string cfg_data ;
         ret = load("tpl.m.baidu.com.conf", cfg_data);
         assert(ret == 0);
     
         std::string html_data ;
-        ret = load("a.html", html_data);
+        ret = load(argv[2], html_data);
         assert(ret == 0);
     
         std::string host = "m.baidu.com";
