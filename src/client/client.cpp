@@ -95,7 +95,7 @@ void load(std::string file, SpiderWebServiceClient& client) {
             if(*p == '\r' || *p == '\n'){
                 std::string line = std::string(begin, p-begin);
                 std::string query = line;
-                //if(strncmp(url.c_str(), "http://", strlen("http://")) != 0)
+                if(strncmp(query.c_str(), "http://", strlen("http://")) != 0)
                 {
                         unsigned char md5_val[33];
                         MD5_calc(query.c_str(), query.size(), md5_val, 32);
@@ -110,6 +110,9 @@ void load(std::string file, SpiderWebServiceClient& client) {
                         rqst.__set_userdata(userdata);
                         client.submit(rqst);
                 } 
+                else{
+                    client.submit_url(line);
+                }
 
                 while(p<buf+left) {
                     if(*p != '\r' && *p != '\n')
