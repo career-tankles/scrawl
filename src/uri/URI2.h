@@ -2,6 +2,10 @@
 #define __URI2_H__
 
 #include <string>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "url-parser.h"
 
 class URI2

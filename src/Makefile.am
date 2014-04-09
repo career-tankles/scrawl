@@ -9,6 +9,7 @@ AM_CPPFLAGS = -g \
                 -I/usr/local/glog-0.3.3/include \
                 -I/usr/local/gflags-1.2/include \
                 -I/usr/local/thrift-0.9.1/include \
+				-I/usr/local/libevent/include \
                 -I${top_dir}/include \
                 -I${top_dir}/common \
                 -I${top_dir}/common/utils \
@@ -23,7 +24,7 @@ LIBS =  -L. \
         -L/usr/local/glog-0.3.3/lib -lglog     \
         -L/usr/local/gflags-1.2/lib -lgflags   \
         -L/usr/local/thrift-0.9.1/lib -lthrift \
-        -levent \
+        -L/usr/local/libevent/lib -levent \
         -L./thrift \
         -L./uri 
         
@@ -31,7 +32,7 @@ LIBS =  -L. \
 noinst_LIBRARIES = libSpiderResManager.a
 libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc conf.cc
 
-noinst_PROGRAMS    = service_spider 
+noinst_PROGRAMS = service_spider 
 service_spider_SOURCES = main.cc
 service_spider_LDADD   = libSpiderResManager.a \
                          uri/liburi.a \

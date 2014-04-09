@@ -5,12 +5,14 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <time.h>
 #include <vector>
 #include <fcntl.h>
+#include <string.h>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <algorithm>
 
 using namespace std;
 

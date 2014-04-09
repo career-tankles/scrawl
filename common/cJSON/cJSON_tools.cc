@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <assert.h>
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
 
 /*
 #define cJSON_AddNullToObject(object,name)      cJSON_AddItemToObject(object, name, cJSON_CreateNull())
