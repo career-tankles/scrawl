@@ -47,7 +47,8 @@ CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_client_OBJECTS = client.$(OBJEXT)
 client_OBJECTS = $(am_client_OBJECTS)
-client_DEPENDENCIES = ../thrift/libspider_webservice.a
+client_DEPENDENCIES = ../thrift/libspider_webservice.a \
+	${top_dir}/common/md5/libmd5.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -89,7 +90,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -L/usr/local/thrift-0.9.1/lib -lthrift
+LIBS = -L/usr/local/thrift-0.9.1/lib -lthrift 
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
@@ -140,10 +141,13 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_dir = ../..
 AM_CPPFLAGS = -I/usr/local/thrift-0.9.1/include \
-                -I../thrift/gen-cpp
+                -I../thrift/gen-cpp \
+                -I${top_dir}/common/md5
 
 client_SOURCES = client.cpp
-client_LDADD = ../thrift/libspider_webservice.a
+client_LDADD = ../thrift/libspider_webservice.a \
+                 ${top_dir}/common/md5/libmd5.a
+
 all: all-am
 
 .SUFFIXES:

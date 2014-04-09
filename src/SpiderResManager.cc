@@ -63,7 +63,7 @@ int SpiderResManager::submit(Res* res) {
         }
         //URI uri(url);
         URI2 uri(url);
-        LOG(INFO)<<"RES submit "<<url<<" "<<res->userdata;
+        LOG(INFO)<<"RES submit "<<url<<" userdata:"<<res->userdata;
         res_list_.add(res);
         return 0;
     }catch(std::exception& e){

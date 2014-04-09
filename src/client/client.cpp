@@ -32,6 +32,7 @@
 #include <thrift/transport/TTransportUtils.h>
 
 #include "SpiderWebService.h"
+#include "md52.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -41,6 +42,43 @@ using namespace apache::thrift::transport;
 using namespace boost;
 
 using namespace spider::webservice ;
+
+
+void splitByLine(const char* s, std::vector<std::string>& v) {
+    if(!s) return ;
+
+    std::cout<<"["<<s<<"]"<<std::endl;
+    const char* start = NULL;
+    const char* p = s;
+    while(p && *p != '\0') {
+        while(p && *p != '\0' && (*p == '\r' || *p == '\n')) p++; // 第一个非空字符
+        start = p;
+        while(p && *p != '\0' && *p != '\r' && *p != '\n') p++; // 起始非空字符
+        if(start && p && *p != '\0' ) {
+            v.push_back(std::string(start, p-start));
+        } else if(start) {
+            v.push_back(std::string(start));
+        }   
+    }   
+}
+
+void splitByTab(const char* s, std::vector<std::string>& v) {
+    if(!s) return ;
+
+    std::cout<<"["<<s<<"]"<<std::endl;
+    const char* start = NULL;
+    const char* p = s;
+    while(p && *p != '\0') {
+        while(p && *p != '\0' && (*p == '\t' || *p == '\n')) p++; // 第一个非空字符
+        start = p;
+        while(p && *p != '\0' && *p != '\t' && *p != '\n') p++; // 起始非空字符
+        if(start && p && *p != '\0' ) {
+            v.push_back(std::string(start, p-start));
+        } else if(start) {
+            v.push_back(std::string(start));
+        }   
+    }   
+}
 
 void load(std::string file, SpiderWebServiceClient& client) {
     int fd = open(file.c_str(), O_RDONLY);
@@ -55,18 +93,23 @@ void load(std::string file, SpiderWebServiceClient& client) {
         left += n;
         while(p < buf+left){
             if(*p == '\r' || *p == '\n'){
-                std::string url = std::string(begin, p-begin);
-                std::cout<<url<<std::endl;
-                if(strncmp(url.c_str(), "http://", strlen("http://")) != 0)
+                std::string line = std::string(begin, p-begin);
+                std::string query = line;
+                //if(strncmp(url.c_str(), "http://", strlen("http://")) != 0)
                 {
-                    const static std::string default_host = "http://m.baidu.com/s?word=";
-                    url = default_host+url;
-                }
-                HttpRequest rqst;
-                rqst.__set_url(url);
-                rqst.__set_userdata("USER-DATA:" + url);
-                //client.submit(rqst);
-                client.submit_url(url);
+                        unsigned char md5_val[33];
+                        MD5_calc(query.c_str(), query.size(), md5_val, 32);
+    
+                        const static std::string default_host = "http://m.baidu.com/s?word=";
+                        std::string url = default_host+query;
+                        std::string userdata = "0 " + std::string((char*)md5_val, 32) ;
+                        std::cout<<query<<" md5:"<<md5_val<<" userdata:"<<userdata<<std::endl;
+    
+                        HttpRequest rqst;
+                        rqst.__set_url(url);
+                        rqst.__set_userdata(userdata);
+                        client.submit(rqst);
+                } 
 
                 while(p<buf+left) {
                     if(*p != '\r' && *p != '\n')

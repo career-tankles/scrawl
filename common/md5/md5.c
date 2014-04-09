@@ -1,6 +1,36 @@
 #include <memory.h>
+
 #include "md5.h"
 
+#define F(x,y,z) ((x & y) | (~x & z))
+#define G(x,y,z) ((x & z) | (y & ~z))
+#define H(x,y,z) (x^y^z)
+#define I(x,y,z) (y ^ (x | ~z))
+#define ROTATE_LEFT(x,n) ((x << n) | (x >> (32-n)))
+#define FF(a,b,c,d,x,s,ac) \
+{ \
+    a += F(b,c,d) + x + ac; \
+    a = ROTATE_LEFT(a,s); \
+    a += b; \
+}
+#define GG(a,b,c,d,x,s,ac) \
+{ \
+    a += G(b,c,d) + x + ac; \
+    a = ROTATE_LEFT(a,s); \
+    a += b; \
+}
+#define HH(a,b,c,d,x,s,ac) \
+{ \
+    a += H(b,c,d) + x + ac; \
+    a = ROTATE_LEFT(a,s); \
+    a += b; \
+}
+#define II(a,b,c,d,x,s,ac) \
+{ \
+    a += I(b,c,d) + x + ac; \
+    a = ROTATE_LEFT(a,s); \
+    a += b; \
+}
 unsigned char PADDING[]={0x80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -159,4 +189,23 @@ void MD5Transform(unsigned int state[4],unsigned char block[64])
     state[2] += c;
     state[3] += d;
 }
+
+int MD5_calc(const void* data, size_t data_len, unsigned char md5_val[32], size_t l) {
+
+    MD5_CTX md5;
+    MD5Init(&md5);
+    unsigned char decrypt[16];
+    MD5Update(&md5,(unsigned char*)data,data_len);
+    MD5Final(&md5,decrypt);
+
+    int i, offset = 0;
+    for(i=0; i<sizeof(decrypt) && offset<l; i++) {
+        offset += snprintf(md5_val+offset, l-offset, "%02x", decrypt[i]);
+    }
+
+    return 0;
+
+}
+
+
 
