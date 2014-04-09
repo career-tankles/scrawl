@@ -343,7 +343,7 @@ int load_tpls(std::string file, std::map<std::string, struct cfg_tpl*>& maps_tpl
                 if(!line.empty() && line[0] != '#') {
                     std::vector<std::string> v ;
                     splitBySpace(line.c_str(), v);
-                    print(v);
+                    //print(v);
                     if(v.size() == 2) {
                         struct cfg_tpl* t = new cfg_tpl;
                         struct cfg_tpl& c = *t;
@@ -400,38 +400,30 @@ int extract_search_http_page(std::string host, std::string url, std::string user
         LOG(ERROR)<<"xml_document load error: "<<parse_res.description()<<" "<<parse_res.offset;
         return -1;
     }
-    
-    cJSON* jnew_root = cJSON_CreateObject();
-    
-    cJSON_AddStringToObject(jnew_root, "host", host.c_str());
-    cJSON_AddStringToObject(jnew_root, "url", url.c_str());
-    cJSON_AddStringToObject(jnew_root, "userdata", userdata.c_str());
-    cJSON_AddNumberToObject(jnew_root, "time", time(NULL));
-    
-    cJSON* jnew_results = cJSON_CreateArray();
-    
+
     pugi::xpath_node_set nodes = doc.select_nodes(c.xpath.c_str());
-    std::cout<<"c.xpath="<<c.xpath<<" size="<<nodes.size()<<std::endl;
+    if(nodes.size() <= 0) {
+        LOG(INFO)<<"EXTRACTOR nodes_set is empty "<<c.xpath;
+        return -2;
+    }
+
+    LOG(INFO)<<"EXTRACTOR c.xpath="<<c.xpath<<" node_set size="<<nodes.size();
+    cJSON* jnew_results = cJSON_CreateArray();
     for(int i=0; i<nodes.size(); i++) {
         pugi::xml_node node = nodes[i].node();
         //node.print(std::cout);
         pugi::xpath_query query_name(c._key_.c_str());
         std::string key = query_name.evaluate_string(node);
-        std::cout<<"\nKEY="<<key<<std::endl;
-    
-        cJSON* jnew_result = cJSON_CreateObject();
     
         if(c.results.count(key) == 0) {
-            std::string invalid_val = "WARNING: key=" + key + " handler not set!";
-            cJSON_AddStringToObject(jnew_result, "invalid", invalid_val.c_str());
-            cJSON_AddItemToArray(jnew_results, jnew_result);
-            
+            LOG(WARNING)<<"EXTRACTOR "<<key<<"'s handler not set!";
             continue;
         }
+    
+        cJSON* jnew_result = cJSON_CreateObject();
+        // 遍历结果模板的每个field
         result_tpl& res_tpl = c.results[key];
         assert(res_tpl.jnode);
-    
-        // 遍历结果模板的每个field
         cJSON* next = res_tpl.jnode->child;
         while(next) {
             cJSON* jfield_type = NULL;
@@ -455,7 +447,7 @@ int extract_search_http_page(std::string host, std::string url, std::string user
                 field_xpath = jfield_xpath->valuestring;
     
             if(field_xpath.empty()) {
-                std::cout<<"======"<<field_name<<" field_xpath is empty"<<std::endl;
+                LOG(INFO)<<"EXTRACTOR -- "<<field_name<<"'s field_xpath is empty"<<std::endl;
                 goto Next;
             }
     
@@ -473,28 +465,46 @@ int extract_search_http_page(std::string host, std::string url, std::string user
             }
                 
             if(field_value.empty()) {
-                std::cout<<"======"<<field_name<<" "<<field_type<<" "<<field_xpath<<" field_value=null"<<std::endl;
+                LOG(WARNING)<<"EXTRACTOR -- "<<field_name<<" "<<field_type<<" "<<field_xpath<<" field_value=null";
                 goto Next;
             }
     
             cJSON_AddStringToObject(jnew_result, field_name.c_str(), field_value.c_str());
-            cout<<"----- "<<field_name<<" "<<field_type<<" "<<field_xpath<<" "<<field_value<<std::endl;
+            LOG(INFO)<<"EXTRACTOR -- "<<field_name<<" "<<field_type<<" "<<field_xpath<<" "<<field_value;
     
         Next:
             next = next->next;
     
         } // endof of while(next)
         cJSON_AddItemToArray(jnew_results, jnew_result);
-    
-        //getchar();
-    }
-    
-    cJSON_AddItemToObject(jnew_root, "results", jnew_results);
-    //std::cout<<cJSON_Print(jnew_root)<<std::endl;
-    json_str = cJSON_PrintUnformatted(jnew_root);
-    cJSON_Delete(jnew_root);
+    } // endof of for
 
-    return 0;
+    if(cJSON_GetArraySize(jnew_results) > 0) {
+        cJSON* jnew_root = cJSON_CreateObject();
+        
+        if(!host.empty())
+            cJSON_AddStringToObject(jnew_root, "host", host.c_str());
+        if(!url.empty())
+            cJSON_AddStringToObject(jnew_root, "url", url.c_str());
+        if(!userdata.empty())
+            cJSON_AddStringToObject(jnew_root, "userdata", userdata.c_str());
+    
+        cJSON_AddNumberToObject(jnew_root, "time", time(NULL));
+        
+        cJSON_AddItemToObject(jnew_root, "results", jnew_results);
+        //std::cout<<cJSON_Print(jnew_root)<<std::endl;
+        json_str = cJSON_PrintUnformatted(jnew_root);
+        cJSON_Delete(jnew_root);
+        return 0;
+    } else {
+        cJSON_Delete(jnew_results);
+        LOG(WARNING)<<"EXTRACTOR no result "<<url<<" "<<c.xpath;
+        return -3;
+    }
+}
+
+int extract_search_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json_str) {
+    return extract_search_http_page("", "", "", html_data.c_str(), c, json_str);
 }
 
 int parseSearchListJson(const char* json_str) {
@@ -516,10 +526,8 @@ int parseSearchListJson(const char* json_str) {
     cJSON* jresults = cJSON_GetObjectItem(jroot, "results");
     for (int i = 0 ; jresults && i < cJSON_GetArraySize(jresults) ; i++) {
         cJSON* jresult = cJSON_GetArrayItem(jresults, i);
-
-        cJSON* jinvalid = cJSON_GetObjectItem(jresult, "invalid");
-        if(jinvalid) {
-            LOG(ERROR)<<"EXTRACTOR invalid result "<<jinvalid->valuestring;
+        if(!jresult) {
+            LOG(ERROR)<<"EXTRACTOR invalid result "<<jresult->valuestring;
             continue;
         }
 
@@ -545,7 +553,7 @@ int parseSearchListJson(const char* json_str) {
 void print(std::map<std::string, std::string>& headers) {
     std::map<std::string, std::string>::iterator iter = headers.begin();
     for(; iter!=headers.end(); iter++) {
-        std::cout<<"=================="<<iter->first<<" "<<iter->second<<std::endl;
+        std::cout<<"=================="<<iter->first<<" -> "<<iter->second<<std::endl;
     }
 }
 
@@ -562,7 +570,6 @@ int extract_http_page(cJSON* obj, struct cfg_tpl& c, std::string& json_str) {
     cJSON* jhost = cJSON_GetObjectItem(jinfo, "host");
     assert(jhost);
     cJSON* juserdata = cJSON_GetObjectItem(jinfo, "userdata");
-    //assert(juserdata);
 
     std::string host = jhost->valuestring;
     std::string url = jurl->valuestring;
@@ -575,7 +582,7 @@ int extract_http_page(cJSON* obj, struct cfg_tpl& c, std::string& json_str) {
     if(userdata.empty()) {
         LOG(INFO)<<"EXTRATOR invalid userdata: empty";
         //return -1;
-        userdata = "A xxxxxxxxxxxxxxxx";
+        userdata = "A xxx";
     }
 
     cJSON* jheaders = cJSON_GetObjectItem(obj, "headers");
@@ -583,18 +590,15 @@ int extract_http_page(cJSON* obj, struct cfg_tpl& c, std::string& json_str) {
     assert(jbody && jbody->valuestring);
     const char* html_data = jbody->valuestring;
 
-    std::string html_raw_data (html_data);
-
     // 根据userdata判断如何解析
     char level = userdata[0];
     if(level == '0') {
-        extract_search_http_page(host, url, userdata, html_data, c, json_str);
-        //std::cout<<"Results: "<<json_str<<std::endl;
-
-        parseSearchListJson(json_str.c_str());
-
-        //fd.append(userdata + "\t" + json_str + "\n")
-
+        int ret = extract_search_http_page(host, url, userdata, html_data, c, json_str);
+        if(ret == 0) {
+            //std::cout<<"Results: "<<json_str<<std::endl;
+            parseSearchListJson(json_str.c_str());
+            //fd.append(userdata + "\t" + json_str + "\n")
+        } 
     } else if ('A' <= level && level <= 'Z') {
         // TODO: 判断是转码页，还是跳转页
 
@@ -603,43 +607,41 @@ int extract_http_page(cJSON* obj, struct cfg_tpl& c, std::string& json_str) {
         std::map<std::string, std::string> headers;
         HttpParser parser;
         int ret = parser.parse(headers_str, &headers, NULL);
-        print(headers);
+        //print(headers);
         if(ret == 0) {
             if(headers.count("Location") > 0) {  // redirect页面
-                std::string url = headers["Location"];
+                std::string location = headers["Location"];
+                LOG(INFO)<<"EXTRACTOR "<<url<<" Redirect Location="<<location;
                 //fd.append(userdata + "\t" + url + "\n");
-                std::cout<<"Redirect location="<<url<<std::endl;
             } else {
                 // 转码页，根据xpath提取url
-                // /html/body/div[1]/div[1]
-const char* trans_cfg_str = 
-    "{"
-    "    \"host\": \"m.baidu.com\","
-    "    \"xpath\": \"//div[@class='trans']\","
-    "    \"_key_\": \"concat(@class, '-')\","
-    "    \"results\": ["
-    "        {"
-    "            \"_key_\": \"trans-\","
-    "            \"href\": {\"type\":\"ATTR\", \"xpath\":\"a/@href\"}"
-    "        }"
-    "    ]"
-    "}";
+
+                const char* trans_cfg_str = 
+                    "{"
+                    "    \"host\": \"m.baidu.com\","
+                    "    \"xpath\": \"//div[@class='trans']\","
+                    "    \"_key_\": \"concat(@class, '-')\","
+                    "    \"results\": ["
+                    "        {"
+                    "            \"_key_\": \"trans-\","
+                    "            \"href\": {\"type\":\"ATTR\", \"xpath\":\"a/@href\"}"
+                    "        }"
+                    "    ]"
+                    "}";
                 struct cfg_tpl c;
                 parse_cfg(trans_cfg_str, &c);
- 
-                extract_search_http_page(host, url, userdata, html_data, c, json_str);
-                std::cout<<"转码"<<json_str<<std::endl;
-                //fd.append(userdata + "\t" + json_str + "\n");
+                int ret = extract_search_http_page(host, url, userdata, html_data, c, json_str);
+                if(ret == 0)
+                    //fd.append(userdata + "\t" + json_str + "\n");
+                    LOG(INFO)<<"translate page: "<<json_str<<std::endl;
+                else
+                    LOG(WARNING)<<"EXTRACTOR unknown page type "<<url;
             }
 
         } 
     }
     
     return 0;
-}
-
-int extract_search_http_page(std::string& html_data, struct cfg_tpl& c, std::string& json_str) {
-    return extract_search_http_page("", "", "", html_data.c_str(), c, json_str);
 }
 
 void parseHttpPage(const char* file, std::map<std::string, struct cfg_tpl*>& maps_tpls) {
@@ -679,6 +681,8 @@ void parseHttpPage(const char* file, std::map<std::string, struct cfg_tpl*>& map
                 assert(ret == 0);
                 //if(ret == 0)
                 //    std::cout<<return_json_str<<std::endl;
+            } else {
+                LOG(INFO)<<"EXTRACTOR parse template for "<<host<<" not exist";
             }
             cJSON_Delete(obj);
             assert(return_parse_end != NULL);   //
@@ -725,9 +729,9 @@ int main(int argc, char** argv)
     
             std::string return_json_str;
             ret = extract_search_http_page(html_data, *c, return_json_str) ;
-            assert(ret == 0);
-            
-            std::cout<<return_json_str<<std::endl;
+            if(ret == 0)
+                std::cout<<return_json_str<<std::endl;
+            else ;
         }
     }
 

@@ -135,6 +135,7 @@ response_status_cb (http_parser *p, const char *buf, size_t len)
            sizeof(m->response_status),
            buf,
            len);
+  //fprintf(stderr, "AAAAAAAAA response_status_cb:%s\n", m->response_status);
   return 0;
 }
 
@@ -173,6 +174,7 @@ headers_complete_cb (http_parser *p)
            sizeof(m->response_status),
            buf,
            strlen(buf));
+  //fprintf(stderr, "AAAAAAAAA headers_complete_cb:%s\n", m->response_status);
   return 0;
 }
 

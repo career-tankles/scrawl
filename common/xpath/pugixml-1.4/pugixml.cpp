@@ -2485,12 +2485,14 @@ PUGI__NS_BEGIN
 					{
                         if(strncmp(s, "script", strlen("script")) == 0) {
 				            PUGI__SCANFOR(strncmp(s, "</script>", strlen("</script>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
-                            s += strlen("</script>");
+                            if(s && *s != '\0')
+                                s += strlen("</script>");
                             fprintf(stderr, "SKIP script\n");
                             continue;
                         } else if (strncmp(s, "style", strlen("style")) == 0) {
 				            PUGI__SCANFOR(strncmp(s, "</style>", strlen("</style>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
-                            s += strlen("</style>");
+                            if(s && *s != '\0')
+                                s += strlen("</style>");
                             fprintf(stderr, "SKIP style\n");
                             continue;
                         }
@@ -2672,7 +2674,10 @@ PUGI__NS_BEGIN
                       SkipAndNextTag:
                         s = s_begin;
 						char_t* name = cursor->name;
-						if (!name) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+						if (!name) {
+                            fprintf(stderr, "status_end_element_mismatch AAA: %s\n", std::string(s, 20).c_str());
+                            PUGI__THROW_ERROR(status_end_element_mismatch, s);
+                        }
 						
 						while (PUGI__IS_CHARTYPE(*s, ct_symbol))
 						{
@@ -2687,7 +2692,10 @@ PUGI__NS_BEGIN
 						if (*name)
 						{
 							if (*s == 0 && name[0] == endch && name[1] == 0) PUGI__THROW_ERROR(status_bad_end_element, s);
-							else PUGI__THROW_ERROR(status_end_element_mismatch, s);
+							else {
+                                fprintf(stderr, "status_end_element_mismatch BBB: %s %s\n", std::string(s, 20).c_str(), name);
+                                PUGI__THROW_ERROR(status_end_element_mismatch, s);
+                            }
 						}
 							
 						PUGI__POPNODE(); // Pop.
@@ -2769,7 +2777,10 @@ PUGI__NS_BEGIN
 			}
 
 			// check that last tag is closed
-			if (cursor != root) PUGI__THROW_ERROR(status_end_element_mismatch, s);
+			if (cursor != root) {
+                fprintf(stderr, "status_end_element_mismatch CCC: %s %s %s %s\n", cursor->name, cursor->value, root->name, root->value);
+                //PUGI__THROW_ERROR(status_end_element_mismatch, s);
+            }
 
 			return s;
 		}
