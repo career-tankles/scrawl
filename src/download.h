@@ -33,7 +33,6 @@ private:
     bool is_running_;
 
     friend class _DownloaderReactor_;
-    friend class _Downloader_;
 
 };
 

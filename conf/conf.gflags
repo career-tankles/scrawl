@@ -1,4 +1,6 @@
 
+--SERVER_thrift_port=9090
+
 --RES_url_list_queue_size=10000
 --RES_usleep=100
 
@@ -21,7 +23,7 @@
 --DOWN_clock_interval_us=0
 --DOWN_read_timeout_ms=1000
 --DOWN_write_timeout_ms=500
---DOWN_defalut_fetch_interval_sec=1
+--DOWN_defalut_fetch_interval_sec=2
 --DOWN_UserAgent=Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9
 
 --STORE_threads=1

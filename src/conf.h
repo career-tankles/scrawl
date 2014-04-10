@@ -6,6 +6,8 @@
 
 void output_config() ;
 
+DECLARE_int32(SERVER_thrift_port);
+
 DECLARE_int32(RES_url_list_queue_size); 
 DECLARE_int32(RES_usleep);
 
@@ -41,8 +43,8 @@ DECLARE_string(STORE_file_dir);
 DECLARE_string(STORE_format);
 
 DECLARE_int32(WAITER_threads);
-DECLARE_int32(WAITER_usleep);
-DECLARE_int32(WAITER_nores_usleep);
+//DECLARE_int32(WAITER_usleep);
+//DECLARE_int32(WAITER_nores_usleep);
 DECLARE_int32(WAITER_rqst_queue_size);
 DECLARE_int32(WAITER_rslt_queue_size);
 

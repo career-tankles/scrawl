@@ -12,83 +12,21 @@
 namespace spider {
   namespace download {
 
-class _TimeWait_
-{
-    struct _InnerArgs_ {
-        void* args;
-        _TimeWait_* self;
-        struct event timer_ev;
-        struct event* timer_ev2;
-        void* rqst;
-    };
-public:
-    _TimeWait_(struct event_base* base)
-      : base_(base)
-    {}
-
-    void operator()(void* args) {
-        _process_(args);
-    }
-
-    void _process_(void* args) {
-
-        TimeWait* waiter = (TimeWait*)args;
-        assert(waiter);
-
-
-        while(waiter->is_running_) {
-            TimeWait::_Args_* wait_rqst = waiter->wait_list_.pop();
-            if(wait_rqst == NULL) {
-                usleep(FLAGS_WAITER_nores_usleep);
-                continue;
-            }
-
-            if(wait_rqst->wait_ms > 0) {
-                _InnerArgs_* _inargs_ = new _InnerArgs_;
-                _inargs_->args = args;
-                _inargs_->self = this;
-                _inargs_->rqst = (void*)wait_rqst;
-                //_inargs_->timer_ev2 = new struct event;
-                struct timeval tv;
-                evutil_timerclear(&tv);
-                tv.tv_sec = wait_rqst->wait_ms/1000; tv.tv_usec = (wait_rqst->wait_ms%1000)*1000;
-                timeout_set(&_inargs_->timer_ev, _TimeWait_::_ready_rqst_handler_, (void*)_inargs_);
-                event_base_set(base_, &_inargs_->timer_ev);
-                timeout_add(&_inargs_->timer_ev, &tv);
-                LOG(INFO)<<"TIMEWAIT timeout_add "<<tv.tv_sec<<" "<<tv.tv_usec;
-
-            } else {
-                // 直接放入ready队列
-                waiter->ready_list_.push(wait_rqst->userdata);
-                delete wait_rqst; wait_rqst = NULL;
-            }
-            usleep(FLAGS_WAITER_usleep);
-        }
-
-        return;
-    }
-
-    static void _ready_rqst_handler_(const int fd, const short which, void *args) 
-    {
-        _InnerArgs_* _inargs_ = (_InnerArgs_*)args;
-        TimeWait* waiter = (TimeWait*)_inargs_->args;
-        _TimeWait_* self = (_TimeWait_*)_inargs_->self;
-        TimeWait::_Args_* wait_rqst = (TimeWait::_Args_*)_inargs_->rqst;
-        // 放入ready队列
-        waiter->ready_list_.push(wait_rqst->userdata);
-        LOG(INFO)<<"TIMEWAIT timeout ready ";
-
-        timeout_del(&_inargs_->timer_ev);
-        delete wait_rqst; wait_rqst = NULL;
-        delete _inargs_; _inargs_ = NULL;
-    }
-
-private:
-    struct event_base* base_;
-};
-
 class _TimeWaitReactor_
 {
+    struct _InnerArgs_ {
+        struct event_base* base;
+        struct event timer_ev;
+        struct timeval tv;
+        void* args;
+        void* data;
+    
+        _InnerArgs_(): base(NULL), args(NULL), data(NULL) {
+            evutil_timerclear(&tv);
+            tv.tv_sec = 1; tv.tv_usec = 0;
+        }
+    };
+
 public:
     void operator()(void* args)
     {
@@ -97,34 +35,79 @@ public:
 
     void* _start_threads(void* args)
     {
-        TimeWait* waiter = (TimeWait*)args;
-        assert(waiter);
+        struct event_base* base_ = event_base_new();
 
-        base_ = event_base_new();
+        _InnerArgs_ clock_args;
+        clock_args.base = base_;
+        clock_args.args = args;
+        clock_args.tv.tv_sec = 0;
+        clock_args.tv.tv_usec = 1000;
 
-        // 添加timer，避免无抓取任务时event_base_dispatch循环退出
-        my_add_timer(base_, &clockevent_, _TimeWaitReactor_::_clock_handler, 0, 1000, this);
-
-        threadpool threadpool_;
-        threadpool_.create_thread(_TimeWait_(base_), (void*)waiter);
+        // 添加timer
+        evtimer_set(&clock_args.timer_ev, _wait_rqst_handler_, (void*)&clock_args);
+        event_base_set(base_, &clock_args.timer_ev);
+        evtimer_add(&clock_args.timer_ev, &clock_args.tv);
 
         event_base_dispatch(base_); 
+        std::cerr<<"after event_base_dispatch"<<std::endl;
 
         event_base_free(base_);
 
     }
 
-    static void _clock_handler(const int fd, const short which, void *args) 
-    {
-        _TimeWaitReactor_* self = (_TimeWaitReactor_*)args;
-        my_add_timer(self->base_, &self->clockevent_, _TimeWaitReactor_::_clock_handler, 0, 1000, args);
+    static void _wait_rqst_handler_(const int fd, const short which, void* args) {
+
+        _InnerArgs_* clock_args = (_InnerArgs_*)args;
+
+        TimeWait* waiter = (TimeWait*)clock_args->args;
+        assert(waiter);
+
+        const int max_slot = 10;
+        int n = 0;
+        while(waiter->is_running_ && n++ < max_slot) {
+            TimeWait::_Args_* wait_rqst = waiter->wait_list_.pop();
+            if(wait_rqst == NULL) {
+                break;
+            }
+
+            if(wait_rqst->wait_ms > 0) {
+                _InnerArgs_* _inargs_ = new _InnerArgs_;
+                _inargs_->base = clock_args->base;
+                _inargs_->args = clock_args->args;
+                _inargs_->data = (void*)wait_rqst;
+                _inargs_->tv.tv_sec = wait_rqst->wait_ms/1000; 
+                _inargs_->tv.tv_usec = (wait_rqst->wait_ms%1000)*1000;
+
+                timeout_set(&_inargs_->timer_ev, _ready_rqst_handler_, (void*)_inargs_);
+                event_base_set(_inargs_->base, &_inargs_->timer_ev);
+                timeout_add(&_inargs_->timer_ev, &_inargs_->tv);
+
+                LOG(INFO)<<"TIMEWAIT timeout_add "<<_inargs_->tv.tv_sec<<" "<<_inargs_->tv.tv_usec;
+
+            } else {
+                // 直接放入ready队列
+                waiter->ready_list_.push(wait_rqst->userdata);
+                delete wait_rqst; wait_rqst = NULL;
+            }
+        }
+
+        evtimer_add(&clock_args->timer_ev, &clock_args->tv);
     }
 
-private:
-    struct event_base* base_;
-    struct event clockevent_;
-};
+    static void _ready_rqst_handler_(const int fd, const short which, void *args) 
+    {
+        _InnerArgs_* _inargs_ = (_InnerArgs_*)args;
+        TimeWait* waiter = (TimeWait*)_inargs_->args;
+        TimeWait::_Args_* wait_rqst = (TimeWait::_Args_*)_inargs_->data;
+        // 放入ready队列
+        waiter->ready_list_.push(wait_rqst->userdata);
+        LOG(INFO)<<"TIMEWAIT timeout ready ";
 
+        timeout_del(&_inargs_->timer_ev);
+        delete wait_rqst; wait_rqst = NULL;
+        delete _inargs_; _inargs_ = NULL;
+    }
+};
 
 TimeWait::TimeWait()
   : wait_list_(FLAGS_WAITER_rqst_queue_size), ready_list_(FLAGS_WAITER_rslt_queue_size), is_running_(false)

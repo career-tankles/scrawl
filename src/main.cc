@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
     threadpool.create_thread(_spider_thread_(), (void*)&spider);
 
     // thrift service 
-  int port = 9090;
+  int port = FLAGS_SERVER_thrift_port;
   shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(spider));
   shared_ptr<TProcessor> processor(new SpiderWebServiceProcessor(handler));
   shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));

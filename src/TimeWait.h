@@ -33,7 +33,6 @@ private:
     bool is_running_;
 
     friend class _TimeWaitReactor_;
-    friend class _TimeWait_;
 
 };
 

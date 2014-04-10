@@ -2,6 +2,8 @@
 #include "conf.h"
 #include <glog/logging.h>
 
+DEFINE_int32(SERVER_thrift_port, 9090, ""); 
+
 DEFINE_int32(RES_url_list_queue_size, 20000, ""); 
 DEFINE_int32(RES_usleep, 100, "");
 
@@ -38,8 +40,8 @@ DEFINE_string(STORE_file_dir, "/tmp/spider/data", "must exist");
 DEFINE_string(STORE_format, "JSON", "");
 
 DEFINE_int32(WAITER_threads, 1, "");
-DEFINE_int32(WAITER_usleep, 100, "");
-DEFINE_int32(WAITER_nores_usleep, 200, "");
+//DEFINE_int32(WAITER_usleep, 100, "");
+//DEFINE_int32(WAITER_nores_usleep, 200, "");
 DEFINE_int32(WAITER_rqst_queue_size, 10000, "");
 DEFINE_int32(WAITER_rslt_queue_size, 10000, "");
 
@@ -76,8 +78,8 @@ void output_config() {
     LOG(INFO)<<"STORE_format="<<FLAGS_STORE_format;
 
     LOG(INFO)<<"WAITER_threads="<<FLAGS_WAITER_threads;
-    LOG(INFO)<<"WAITER_usleep="<<FLAGS_WAITER_usleep;
-    LOG(INFO)<<"WAITER_nores_usleep="<<FLAGS_WAITER_nores_usleep;
+    //LOG(INFO)<<"WAITER_usleep="<<FLAGS_WAITER_usleep;
+    //LOG(INFO)<<"WAITER_nores_usleep="<<FLAGS_WAITER_nores_usleep;
     LOG(INFO)<<"WAITER_rqst_queue_size="<<FLAGS_WAITER_rqst_queue_size;
     LOG(INFO)<<"WAITER_rslt_queue_size="<<FLAGS_WAITER_rslt_queue_size;
 }
