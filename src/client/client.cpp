@@ -31,6 +31,9 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
+#include <glog/logging.h>
+#include <gflags/gflags.h>
+
 #include "SpiderWebService.h"
 #include "md52.h"
 
@@ -80,7 +83,7 @@ void splitByTab(const char* s, std::vector<std::string>& v) {
     }   
 }
 
-void load(std::string file, SpiderWebServiceClient& client) {
+void load_query(std::string file, SpiderWebServiceClient& client) {
     int fd = open(file.c_str(), O_RDONLY);
     if(fd == -1) return ;
     char buf[1024*1024];
@@ -103,7 +106,7 @@ void load(std::string file, SpiderWebServiceClient& client) {
                         const static std::string default_host = "http://m.baidu.com/s?word=";
                         std::string url = default_host+query;
                         std::string userdata = "0 " + std::string((char*)md5_val, 32) ;
-                        std::cout<<query<<" md5:"<<md5_val<<" userdata:"<<userdata<<std::endl;
+                        std::cout<<query<<" userdata:"<<userdata<<std::endl;
     
                         HttpRequest rqst;
                         rqst.__set_url(url);
@@ -129,10 +132,18 @@ void load(std::string file, SpiderWebServiceClient& client) {
     }
 }
 
-
+DEFINE_string(CLIENT_server_addr, "localhost", "");
+DEFINE_int32(CLIENT_server_port, 9090, "");
+DEFINE_string(CLIENT_query_file, "query.txt", "");
 
 int main(int argc, char** argv) {
-  shared_ptr<TTransport> socket(new TSocket("localhost", 9090));
+  google::ParseCommandLineFlags(&argc, &argv, true);
+  // Initialize Google's logging library.
+  FLAGS_logtostderr = 1;  // 默认打印错误输出
+  google::InitGoogleLogging(argv[0]);
+
+  //shared_ptr<TTransport> socket(new TSocket("10.138.70.139", 9090));
+  shared_ptr<TTransport> socket(new TSocket(FLAGS_CLIENT_server_addr.c_str(), FLAGS_CLIENT_server_port));
   shared_ptr<TTransport> transport(new TBufferedTransport(socket));
   shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
   SpiderWebServiceClient client(protocol);
@@ -140,7 +151,7 @@ int main(int argc, char** argv) {
   try {
     transport->open();
 
-    load("urls.txt", client);
+    load_query(FLAGS_CLIENT_query_file, client);
 
     transport->close();
   } catch (TException &tx) {

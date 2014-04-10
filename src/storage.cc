@@ -262,6 +262,7 @@ public:
             cJSON_AddStringToObject(juserinfo, "url", result->url.c_str());
             cJSON_AddStringToObject(juserinfo, "host", result->host.c_str());
             cJSON_AddStringToObject(juserinfo, "status", result->state==http_result_t::HTTP_PAGE_OK?"OK":"ERROR");
+            cJSON_AddNumberToObject(juserinfo, "errno", result->error_code);
             cJSON_AddStringToObject(juserinfo, "server", result->fetch_ip.c_str());
             cJSON_AddNumberToObject(juserinfo, "submit_time", result->submit_time);
             cJSON_AddNumberToObject(juserinfo, "write_end_time", result->write_end_time);

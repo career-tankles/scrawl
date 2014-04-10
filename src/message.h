@@ -106,6 +106,8 @@ struct http_result_t {
     std::string http_page_data;                 // 网页数据
     http_request_t* rqst;
     Res* res;
+
+    int error_code;
     
     http_result_t() {
         url = "";
@@ -119,6 +121,7 @@ struct http_result_t {
         http_page_data = "";
         rqst = NULL;
         res = NULL;
+        error_code = 0;
     }
 };
 

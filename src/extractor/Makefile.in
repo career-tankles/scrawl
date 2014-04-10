@@ -34,7 +34,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = xpath_tools$(EXEEXT) xpath_client$(EXEEXT)
+noinst_PROGRAMS = xpath_tools$(EXEEXT)
 subdir = src/extractor
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,12 +45,6 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_xpath_client_OBJECTS = xpath_client.$(OBJEXT)
-xpath_client_OBJECTS = $(am_xpath_client_OBJECTS)
-xpath_client_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
-	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-	$(top_dir)/common/http_parser/libHttpParser.a \
-	$(top_dir)/src/thrift/libspider_webservice.a
 am_xpath_tools_OBJECTS = xpath_tools.$(OBJEXT)
 xpath_tools_OBJECTS = $(am_xpath_tools_OBJECTS)
 xpath_tools_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
@@ -64,8 +58,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(xpath_client_SOURCES) $(xpath_tools_SOURCES)
-DIST_SOURCES = $(xpath_client_SOURCES) $(xpath_tools_SOURCES)
+SOURCES = $(xpath_tools_SOURCES)
+DIST_SOURCES = $(xpath_tools_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -99,6 +93,7 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = -L. \
        -L/usr/local/glog-0.3.3/lib -L${top_dir}/libs/glog-0.3.3/lib -lglog \
+        -L/usr/local/gflags-1.2/lib -L${top_dir}/libs/gflags-1.2/lib -lgflags   \
        -L/usr/local/thrift-0.9.1/lib -I${top_dir}/libs/thrift-0.9.1/lib -lthrift
 
 LTLIBOBJS = @LTLIBOBJS@
@@ -157,18 +152,13 @@ AM_CPPFLAGS = -g \
            -I$(top_dir)/common/xpath/pugixml-1.4 \
            -I$(top_dir)/common/http_parser \
            -I/usr/local/glog-0.3.3/include -I${top_dir}/libs/glog-0.3.3/include \
+           -I/usr/local/gflags-1.2/include -I${top_dir}/libs/gflags-1.2/include \
            -I/usr/local/thrift-0.9.1/include -I${top_dir}/libs/thrift-0.9.1/include 
 
 xpath_tools_SOURCES = xpath_tools.cpp
 xpath_tools_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                     $(top_dir)/common/http_parser/libHttpParser.a 
-
-xpath_client_SOURCES = xpath_client.cpp
-xpath_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
-                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-                     $(top_dir)/common/http_parser/libHttpParser.a  \
-                     $(top_dir)/src/thrift/libspider_webservice.a
 
 all: all-am
 
@@ -206,9 +196,6 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-xpath_client$(EXEEXT): $(xpath_client_OBJECTS) $(xpath_client_DEPENDENCIES) 
-	@rm -f xpath_client$(EXEEXT)
-	$(CXXLINK) $(xpath_client_LDFLAGS) $(xpath_client_OBJECTS) $(xpath_client_LDADD) $(LIBS)
 xpath_tools$(EXEEXT): $(xpath_tools_OBJECTS) $(xpath_tools_DEPENDENCIES) 
 	@rm -f xpath_tools$(EXEEXT)
 	$(CXXLINK) $(xpath_tools_LDFLAGS) $(xpath_tools_OBJECTS) $(xpath_tools_LDADD) $(LIBS)
@@ -219,7 +206,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xpath_client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xpath_tools.Po@am__quote@
 
 .cpp.o:
@@ -400,6 +386,12 @@ uninstall-am: uninstall-info-am
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-info-am
 
+
+#xpath_client_SOURCES = xpath_client.cpp
+#xpath_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
+#                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+#                     $(top_dir)/common/http_parser/libHttpParser.a  \
+#                     $(top_dir)/src/thrift/libspider_webservice.a
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

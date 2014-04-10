@@ -55,6 +55,7 @@ public:
                 timeout_set(&_inargs_->timer_ev, _TimeWait_::_ready_rqst_handler_, (void*)_inargs_);
                 event_base_set(base_, &_inargs_->timer_ev);
                 timeout_add(&_inargs_->timer_ev, &tv);
+                LOG(INFO)<<"TIMEWAIT timeout_add "<<tv.tv_sec<<" "<<tv.tv_usec;
 
             } else {
                 // 直接放入ready队列
@@ -75,6 +76,7 @@ public:
         TimeWait::_Args_* wait_rqst = (TimeWait::_Args_*)_inargs_->rqst;
         // 放入ready队列
         waiter->ready_list_.push(wait_rqst->userdata);
+        LOG(INFO)<<"TIMEWAIT timeout ready ";
 
         timeout_del(&_inargs_->timer_ev);
         delete wait_rqst; wait_rqst = NULL;
@@ -101,12 +103,14 @@ public:
         base_ = event_base_new();
 
         // 添加timer，避免无抓取任务时event_base_dispatch循环退出
-        my_add_timer(base_, &clockevent_, _TimeWaitReactor_::_clock_handler, 1, 0, this);
+        my_add_timer(base_, &clockevent_, _TimeWaitReactor_::_clock_handler, 0, 1000, this);
 
         threadpool threadpool_;
         threadpool_.create_thread(_TimeWait_(base_), (void*)waiter);
 
         event_base_dispatch(base_); 
+
+        event_base_free(base_);
 
     }
 

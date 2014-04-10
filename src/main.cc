@@ -54,7 +54,6 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
     Res* res = new Res();
     res->url = rqst.url;
     res->userdata = rqst.userdata;
-    fprintf(stderr, "interface submit: %s %s\n", rqst.url.c_str(), rqst.userdata.c_str());
     return spider_->submit(res);
   }
 
@@ -83,8 +82,8 @@ struct _spider_thread_ {
 int main(int argc, char **argv) {
     google::ParseCommandLineFlags(&argc, &argv, true);
     // Initialize Google's logging library.
-    google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
+    google::InitGoogleLogging(argv[0]);
 
     output_config();
 

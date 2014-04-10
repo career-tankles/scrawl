@@ -176,6 +176,7 @@ public:
         result->write_end_time = c->write_end_time;
         result->recv_begin_time = c->recv_begin_time;
         result->recv_end_time = c->recv_end_time;
+        result->error_code = c->err_code_;
         char ts[1024]={0};
         time_t now = time(NULL);
         strftime(ts, sizeof(ts),"%a %Y-%m-%d %H:%M:%S",localtime(&now));
@@ -229,6 +230,7 @@ public:
         my_add_timer(base_, &clockevent_, _clock_handler, tv, this);
 
         event_base_dispatch(base_); 
+        event_base_free(base_);
     }
 
     static void _clock_handler(const int fd, const short which, void *args) 

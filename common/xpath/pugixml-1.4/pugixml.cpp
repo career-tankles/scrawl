@@ -2487,13 +2487,13 @@ PUGI__NS_BEGIN
 				            PUGI__SCANFOR(strncmp(s, "</script>", strlen("</script>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
                             if(s && *s != '\0')
                                 s += strlen("</script>");
-                            fprintf(stderr, "SKIP script\n");
+                            //fprintf(stderr, "SKIP script\n");
                             continue;
                         } else if (strncmp(s, "style", strlen("style")) == 0) {
 				            PUGI__SCANFOR(strncmp(s, "</style>", strlen("</style>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
                             if(s && *s != '\0')
                                 s += strlen("</style>");
-                            fprintf(stderr, "SKIP style\n");
+                            //fprintf(stderr, "SKIP style\n");
                             continue;
                         }
 
@@ -2558,7 +2558,7 @@ PUGI__NS_BEGIN
 											// Whitespaces, / and > are ok, symbols and EOF are wrong,
 											// everything else will be detected
 											if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) {
-                                                fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
+                                                //fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
                                                 continue;
                                 
                                                 PUGI__THROW_ERROR(status_bad_attribute, s);
@@ -2571,7 +2571,7 @@ PUGI__NS_BEGIN
 											if (!s) { fprintf(stderr, "status_bad_attribute DDDD-2222\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
 											fprintf(stderr, "status_bad_attribute DDDD-333 %s\n", std::string(s, 20).c_str()); 
                                             if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) {
-                                                fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
+                                                //fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
                                                 continue;
                                 
                                                 PUGI__THROW_ERROR(status_bad_attribute, s);
