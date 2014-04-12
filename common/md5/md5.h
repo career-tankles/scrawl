@@ -1,7 +1,7 @@
 #ifndef _MD5_H_
 #define _MD5_H_
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -20,7 +20,7 @@ void MD5Encode(unsigned char *output,unsigned int *input,unsigned int len);
 void MD5Decode(unsigned int *output,unsigned char *input,unsigned int len);
 int MD5_calc(const void* data, size_t data_len, unsigned char md5_val[32], size_t l);
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -5,7 +5,7 @@ AM_CPPFLAGS =   -I. \
                 -I/usr/local/thrift-0.9.1/include -I${top_dir}/libs/thrift-0.9.1/include \
                 -I/usr/local/glog-0.3.3/include -I${top_dir}/libs/glog-0.3.3/include \
                 -I/usr/local/gflags-1.2/include -I${top_dir}/libs/gflags-1.2/include \
-                -I../thrift/gen-cpp \
+                -I${top_dir}/src/thrift/gen-cpp \
                 -I${top_dir}/common/md5
 
 LIBS =  -L. \
@@ -15,5 +15,6 @@ LIBS =  -L. \
 
 noinst_PROGRAMS = client
 client_SOURCES = client.cpp
-client_LDADD   = ../thrift/libspider_webservice.a 
+client_LDADD   = ${top_dir}/common/md5/libmd5.a \
+                 ${top_dir}/src/thrift/libspider_webservice.a
 

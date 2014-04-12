@@ -2,11 +2,13 @@
 top_dir = ../..
 
 AM_CPPFLAGS = -g \
-           -I$(top_dir)/src/thrift \
-           -I$(top_dir)/src/thrift/gen-cpp \
+           -I$(top_dir)/common \
+           -I$(top_dir)/common/utils \
            -I$(top_dir)/common/cJSON \
            -I$(top_dir)/common/xpath/pugixml-1.4 \
            -I$(top_dir)/common/http_parser \
+           -I$(top_dir)/src/thrift \
+           -I$(top_dir)/src/thrift/gen-cpp \
            -I/usr/local/glog-0.3.3/include -I${top_dir}/libs/glog-0.3.3/include \
            -I/usr/local/gflags-1.2/include -I${top_dir}/libs/gflags-1.2/include \
            -I/usr/local/thrift-0.9.1/include -I${top_dir}/libs/thrift-0.9.1/include 

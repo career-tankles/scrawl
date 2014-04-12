@@ -7,18 +7,19 @@ AC_PROG_RANLIB
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
     Makefile
-    src/Makefile
-    src/uri/Makefile
-    src/thrift/Makefile
-    src/client/Makefile
-    src/extractor/Makefile
     common/Makefile
     common/md5/Makefile
+    common/uri/Makefile
     common/utils/Makefile
     common/http_parser/Makefile
     common/cJSON/Makefile
     common/xpath/Makefile
     common/xpath/pugixml-1.4/Makefile
+    src/Makefile
+    src/thrift/Makefile
+    src/spider/Makefile
+    src/client/Makefile
+    src/extractor/Makefile
     test/Makefile
 ])
 AC_OUTPUT
