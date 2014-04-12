@@ -17,16 +17,16 @@ LIBS = -L. \
         -L/usr/local/gflags-1.2/lib -L${top_dir}/libs/gflags-1.2/lib -lgflags   \
        -L/usr/local/thrift-0.9.1/lib -I${top_dir}/libs/thrift-0.9.1/lib -lthrift
 
-noinst_PROGRAMS = xpath_tools #xpath_client
+noinst_PROGRAMS = xpath_tools xpath_client
 xpath_tools_SOURCES = xpath_tools.cpp
 xpath_tools_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                     $(top_dir)/common/http_parser/libHttpParser.a 
 
-#xpath_client_SOURCES = xpath_client.cpp
-#xpath_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
-#                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-#                     $(top_dir)/common/http_parser/libHttpParser.a  \
-#                     $(top_dir)/src/thrift/libspider_webservice.a
+xpath_client_SOURCES = xpath_client.cpp
+xpath_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
+                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+                     $(top_dir)/common/http_parser/libHttpParser.a  \
+                     $(top_dir)/src/thrift/libspider_webservice.a
 
 

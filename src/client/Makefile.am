@@ -15,6 +15,5 @@ LIBS =  -L. \
 
 noinst_PROGRAMS = client
 client_SOURCES = client.cpp
-client_LDADD   = ../thrift/libspider_webservice.a \
-                 ${top_dir}/common/md5/libmd5.a
+client_LDADD   = ../thrift/libspider_webservice.a 
 

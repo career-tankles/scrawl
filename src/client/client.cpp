@@ -35,7 +35,7 @@
 #include <gflags/gflags.h>
 
 #include "SpiderWebService.h"
-#include "md52.h"
+#include "md5.h"
 
 using namespace std;
 using namespace apache::thrift;

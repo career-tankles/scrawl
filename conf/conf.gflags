@@ -21,7 +21,7 @@
 --DOWN_nores_usleep=200
 --DOWN_clock_interval_sec=10
 --DOWN_clock_interval_us=0
---DOWN_read_timeout_ms=1000
+--DOWN_read_timeout_ms=10000
 --DOWN_write_timeout_ms=500
 --DOWN_defalut_fetch_interval_sec=2
 --DOWN_UserAgent=Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9

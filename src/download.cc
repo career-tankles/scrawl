@@ -297,7 +297,7 @@ public:
         
         if(events == EV_TIMEOUT) {              // 超时
             c->conn_stat_ = CONN_STAT_TIMEOUT;
-            c->err_code_ = errno;
+            c->err_code_ = ETIMEDOUT;
             goto handle_result;
         }
 
@@ -345,13 +345,16 @@ public:
                 c->recv_buf_len_  += n;
                 *(c->recv_buf_wptr_) = '\0';
                 if(FLAGS_DOWN_http_page_maxsize > 0 && c->recv_buf_len_ > FLAGS_DOWN_http_page_maxsize) {
+                    LOG(INFO)<<"DOWNLOAD read data extend max "<<c->sock_fd_<<" "<<FLAGS_DOWN_http_page_maxsize;
                     // too long
                     c->conn_stat_ = CONN_STAT_FINISH ;
+                    c->err_code_ = EMSGSIZE; // 40  EMSGSIZE Message too long
                     goto handle_result ;
                 }
             }
             else if (n == 0) {
                 // close        
+                c->err_code_ = 0 ;
                 c->conn_stat_ = CONN_STAT_FINISH ;
                 *(c->recv_buf_wptr_) = '\0';
                 goto handle_result ;
@@ -360,7 +363,7 @@ public:
                 // error
                 c->conn_stat_ = CONN_STAT_ERROR;
                 c->err_code_ = errno;
-                LOG(INFO)<<"DOWNLOAD read error fd="<<c->sock_fd_<<" errcode="<<c->err_code_;
+                LOG(INFO)<<"DOWNLOAD read error fd="<<c->sock_fd_<<" errno="<<c->err_code_;
                 goto handle_result;
             }
             return ;

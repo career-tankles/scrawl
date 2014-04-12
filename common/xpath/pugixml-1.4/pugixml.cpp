@@ -2484,16 +2484,43 @@ PUGI__NS_BEGIN
 					if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) // '<#...'
 					{
                         if(strncmp(s, "script", strlen("script")) == 0) {
-				            PUGI__SCANFOR(strncmp(s, "</script>", strlen("</script>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
+                            char_t* t_s = s;
+                            s += strlen("script");
+                            int _n_ = 1;
+                            while(s && *s != '\0') {
+                                if(strncmp(s, "<script", strlen("<script")) == 0)     // 嵌套script
+                                    _n_ ++;
+                                else if(strncmp(s, "</script>", strlen("</script>")) == 0)
+                                    _n_ --;
+                                if(_n_ <= 0) break;
+                                s++;
+                            }
+				            //PUGI__SCANFOR(strncmp(s, "</script>", strlen("</script>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
                             if(s && *s != '\0')
                                 s += strlen("</script>");
-                            //fprintf(stderr, "SKIP script\n");
+                            ///fprintf(stderr, "SKIP script %s   %s\n", std::string(t_s-1, s-t_s+1).c_str(), std::string(s, 80).c_str());
                             continue;
                         } else if (strncmp(s, "style", strlen("style")) == 0) {
-				            PUGI__SCANFOR(strncmp(s, "</style>", strlen("</style>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
+                            //char_t* t_s = s;
+				            //PUGI__SCANFOR(strncmp(s, "</style>", strlen("</style>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
+                            //if(s && *s != '\0')
+                            //    s += strlen("</style>");
+                            //fprintf(stderr, "SKIP stype %s   %s   %d   %s\n", std::string(t_s-1, 20).c_str(), std::string(s-9, 20).c_str(), s-t_s, std::string(s, 20).c_str());
+                            char_t* t_s = s;
+                            s += strlen("style");
+                            int _n_ = 1;
+                            while(s && *s != '\0') {
+                                if(strncmp(s, "<style", strlen("<style")) == 0)     // 嵌套style
+                                    _n_ ++;
+                                else if(strncmp(s, "</style>", strlen("</style>")) == 0)
+                                    _n_ --;
+                                if(_n_ <= 0) break;
+                                s++;
+                            }
                             if(s && *s != '\0')
                                 s += strlen("</style>");
-                            //fprintf(stderr, "SKIP style\n");
+                            ///fprintf(stderr, "SKIP style   %s   %s\n", std::string(t_s-1, s-t_s+1).c_str(), std::string(s, 80).c_str());
+ 
                             continue;
                         }
 
@@ -2566,12 +2593,11 @@ PUGI__NS_BEGIN
                                             }
 										} else if('0' <= *s && *s <= '9') {
                                             a->value = s;
-                                            ch = ' ';
 									        PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol)); // Scan for a terminator.
 											if (!s) { fprintf(stderr, "status_bad_attribute DDDD-2222\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
-											fprintf(stderr, "status_bad_attribute DDDD-333 %s\n", std::string(s, 20).c_str()); 
+											fprintf(stderr, "status_bad_attribute DDDD-333 %s %s\n", std::string(a->value, 20).c_str(), std::string(s, 20).c_str()); 
                                             if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) {
-                                                //fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
+                                                fprintf(stderr, "status_bad_attribute CCC %s %s %s\n", a->name, a->value, std::string(s, 20).c_str());
                                                 continue;
                                 
                                                 PUGI__THROW_ERROR(status_bad_attribute, s);
@@ -2682,6 +2708,7 @@ PUGI__NS_BEGIN
 						while (PUGI__IS_CHARTYPE(*s, ct_symbol))
 						{
 							if (*s++ != *name++) { 
+                                fprintf(stderr, "status_end_element_mismatch SKIP %s %s\n", std::string(name-1, 20).c_str(), std::string(s-1, 80).c_str());
                                 PUGI__POPNODE(); // Pop.
                                 
                                 goto SkipAndNextTag;
