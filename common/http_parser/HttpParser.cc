@@ -293,6 +293,10 @@ static void _message_to_headers_body(struct message* m, std::map<std::string, st
 
 
 int HttpParser::parse(std::string& html_raw_data, std::string* headers, std::string* body, size_t* parsed_len) {
+    return parse(html_raw_data.c_str(), html_raw_data.size(), headers, body, parsed_len);
+}
+ 
+int HttpParser::parse(const char* html_raw_data, size_t data_size, std::string* headers, std::string* body, size_t* parsed_len) {
     
     reset();
 
@@ -304,7 +308,7 @@ int HttpParser::parse(std::string& html_raw_data, std::string* headers, std::str
     if(!body)
         http_message_->b_parser_body = false;
 
-    size_t parsed_len_ = http_parser_execute(http_parser_, &settings_count_body, html_raw_data.c_str(), html_raw_data.size());
+    size_t parsed_len_ = http_parser_execute(http_parser_, &settings_count_body, html_raw_data, data_size);
     if(parsed_len) *parsed_len = parsed_len_;
 
     _message_to_headers_body(http_message_, headers, body);
@@ -313,6 +317,10 @@ int HttpParser::parse(std::string& html_raw_data, std::string* headers, std::str
 }
 
 int HttpParser::parse(std::string& html_raw_data, std::map<std::string, std::string>* headers, std::string* body, size_t* parsed_len) {
+    return parse(html_raw_data.c_str(), html_raw_data.size(), headers, body, parsed_len);
+}
+
+int HttpParser::parse(const char* html_raw_data, size_t data_size, std::map<std::string, std::string>* headers, std::string* body, size_t* parsed_len) {
 
     reset();
  
@@ -324,7 +332,7 @@ int HttpParser::parse(std::string& html_raw_data, std::map<std::string, std::str
     if(!body)
         http_message_->b_parser_body = false;
    
-    size_t parsed_len_ = http_parser_execute(http_parser_, &settings_count_body, html_raw_data.c_str(), html_raw_data.size());
+    size_t parsed_len_ = http_parser_execute(http_parser_, &settings_count_body, html_raw_data, data_size);
     if(parsed_len) *parsed_len = parsed_len_;
     
     _message_to_headers_body(http_message_, headers, body);

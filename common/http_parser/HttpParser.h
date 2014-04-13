@@ -14,7 +14,10 @@ public:
     HttpParser();
     ~HttpParser();
 
+    int parse(const char* html_raw_data, size_t data_size, std::string* headers=NULL, std::string* body=NULL, size_t* parsed_len=NULL);
     int parse(std::string& html_raw_data, std::string* headers=NULL, std::string* body=NULL, size_t* parsed_len=NULL);
+
+    int parse(const char* html_raw_data, size_t data_size, std::map<std::string, std::string>* headers=NULL, std::string* body=NULL, size_t* parsed_len=NULL);
     int parse(std::string& html_raw_data, std::map<std::string, std::string>* headers=NULL, std::string* body=NULL, size_t* parsed_len=NULL);
 
 private:
