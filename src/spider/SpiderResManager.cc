@@ -225,7 +225,9 @@ int SpiderResManager::svc() {
 
         // 处理提交的url抓取请求
         Res* res = NULL;
-        while(res_list_.pop(res) == 0) {
+        int max_slot = FLAGS_RES_add_res_each_loop;   // 每次最多处理res数量
+        assert(max_slot > 0);
+        while(max_slot-- > 0 && res_list_.pop(res) == 0) {
             //URI uri;
             URI2 uri;
             uri.parse(res->url);

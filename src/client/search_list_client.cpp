@@ -40,7 +40,8 @@ int parse_search_list(cJSON* jroot, std::string host, std::vector<std::string>* 
     if(juserdata) {
         userdata = juserdata->valuestring;
     }
-    LOG(INFO)<<"CLIENT parse "<<jurl->valuestring;
+
+    bool has_results = false;
     cJSON* jresults = cJSON_GetObjectItem(jroot, "results");
     for(int i=0; jresults && i<cJSON_GetArraySize(jresults); i++) {
         cJSON* jresult = cJSON_GetArrayItem(jresults, i);
@@ -48,12 +49,15 @@ int parse_search_list(cJSON* jroot, std::string host, std::vector<std::string>* 
         if(jhref == NULL || jhref->valuestring == NULL) { 
             continue;
         }
+        has_results = true;
         std::string href = jhref->valuestring;
         if(!href.empty() && !host.empty() && strncmp(href.c_str(), "http://", strlen("http://")) != 0) {
             if(href[0] != '/')
                 href = "/" + href;
             href = "http://" + host + href;
         }
+        
+        std::cout<<"AA: "<<href<<std::endl;
 
         if(urls) {
             urls->push_back(href);
@@ -71,9 +75,7 @@ int parse_search_list(cJSON* jroot, std::string host, std::vector<std::string>* 
         }
     }
 
-    if(urls->size() > 0)
-        return 0;
-    return -1;
+    return has_results?0:-1;
 }
 
 int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* client=NULL) {
@@ -96,7 +98,8 @@ int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* 
                 LOG(INFO)<<"CLIENT parse "<<records<<" records";
                 break; 
             }
-            
+            std::cout<<cJSON_Print(jroot)<<std::endl;
+            //getchar();
             cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
             assert(jurl);
             cJSON* jhost = cJSON_GetObjectItem(jroot, "host");
@@ -113,9 +116,9 @@ int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* 
 
             records++;
 
-            //std::vector<std::string> urls;
-            //int ret = parse_search_list(jroot, host, &urls, client);
-            int ret = parse_search_list(jroot, host, NULL, client);
+            std::vector<std::string> urls;
+            int ret = parse_search_list(jroot, host, &urls, client);
+            //int ret = parse_search_list(jroot, host, NULL, client);
             if(ret == 0) {
                 //print(urls);
             } else {

@@ -10,6 +10,7 @@ DECLARE_int32(SERVER_thrift_port);
 
 DECLARE_int32(RES_url_list_queue_size); 
 DECLARE_int32(RES_usleep);
+DECLARE_int32(RES_add_res_each_loop);
 
 DECLARE_int32(DNS_threads);
 DECLARE_int32(DNS_rqst_queue_size);
@@ -24,8 +25,9 @@ DECLARE_int32(DOWN_threads);
 DECLARE_int32(DOWN_rqst_queue_size);
 DECLARE_int32(DOWN_rslt_queue_size);
 DECLARE_int32(DOWN_http_page_maxsize);
-DECLARE_int32(DOWN_usleep);
-DECLARE_int32(DOWN_nores_usleep);
+DECLARE_int32(DOWN_err_retry_max);
+//DECLARE_int32(DOWN_usleep);
+//DECLARE_int32(DOWN_nores_usleep);
 DECLARE_int32(DOWN_clock_interval_sec);
 DECLARE_int32(DOWN_clock_interval_us);
 DECLARE_int32(DOWN_read_timeout_ms);

@@ -51,9 +51,19 @@ void Website::addHeader(std::string& key, std::string& value) {
     more_headers_[key] = value;
 }
 
-int Website::httpResult(http_result_t* result) {
+int Website::httpResult(http_result_t*& result) {
     if(!result) return -1;
     last_fetch_time_ = result->recv_end_time; // 最后抓取时间
+    if(result->state != http_result_t::HTTP_PAGE_OK && result->res && result->rqst) {
+        if(result->res->err_count < FLAGS_DOWN_err_retry_max) { // 错误重试
+            LOG(INFO)<<"DOWN error retry "<<result->url<<" errno="<<result->error_code<<" times="<<result->res->err_count;
+            result->res->err_count ++;
+            addRes(result->res);
+
+            delete result->rqst; result->rqst = NULL;
+            delete result; result = NULL;
+        }
+    }
     is_fetching_ = false;
 }
 

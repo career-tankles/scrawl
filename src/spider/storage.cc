@@ -354,7 +354,7 @@ int PageStorage::stop() {
 }
 
 int PageStorage::submit(struct http_result_t* result) {
-    assert(result);
+    if(!result) return -1;
     http_result_.push_wait(result);
     return 0;
 }

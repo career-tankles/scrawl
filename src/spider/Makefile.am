@@ -29,7 +29,8 @@ LIBS =  -L. \
 noinst_LIBRARIES = libSpiderResManager.a
 libSpiderResManager_a_SOURCES = SpiderResManager.cc message.cc dns.cc download.cc storage.cc TimeWait.cc message.cc conf.cc
 
-noinst_PROGRAMS = service_spider 
+#noinst_PROGRAMS = service_spider 
+bin_PROGRAMS = service_spider 
 service_spider_SOURCES = main.cc
 service_spider_LDADD   = libSpiderResManager.a \
                          ${top_dir}/common/uri/liburi.a \

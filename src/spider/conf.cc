@@ -6,6 +6,7 @@ DEFINE_int32(SERVER_thrift_port, 9090, "");
 
 DEFINE_int32(RES_url_list_queue_size, 20000, ""); 
 DEFINE_int32(RES_usleep, 100, "");
+DEFINE_int32(RES_add_res_each_loop, 500, "");
 
 DEFINE_int32(DNS_threads, 1, "");
 DEFINE_int32(DNS_rqst_queue_size, 10000, "");
@@ -20,14 +21,14 @@ DEFINE_int32(DOWN_threads, 1, "");
 DEFINE_int32(DOWN_rqst_queue_size, 1000, "");
 DEFINE_int32(DOWN_rslt_queue_size, 2000, "");
 DEFINE_int32(DOWN_http_page_maxsize, 100*1024, "");
-DEFINE_int32(DOWN_usleep, 10, "");
-DEFINE_int32(DOWN_nores_usleep, 100, "");
-DEFINE_int32(DOWN_clock_interval_sec, 10, "");
-DEFINE_int32(DOWN_clock_interval_us, 0, "");
-DEFINE_int32(DOWN_read_timeout_ms, 1000, "");
-DEFINE_int32(DOWN_write_timeout_ms, 500, "");
-DEFINE_int32(DOWN_defalut_fetch_interval_sec, 30, "");
-//DEFINE_string(DOWN_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1", "");
+DEFINE_int32(DOWN_err_retry_max, 3, "");
+//DEFINE_int32(DOWN_usleep, 10, "");
+//DEFINE_int32(DOWN_nores_usleep, 100, "");
+DEFINE_int32(DOWN_clock_interval_sec, 0, "");
+DEFINE_int32(DOWN_clock_interval_us, 1000, "");
+DEFINE_int32(DOWN_read_timeout_ms, 5000, "");
+DEFINE_int32(DOWN_write_timeout_ms, 1000, "");
+DEFINE_int32(DOWN_defalut_fetch_interval_sec, 10, "");
 DEFINE_string(DOWN_UserAgent, "Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9", "");
 
 DEFINE_int32(STORE_threads, 1, "");
@@ -60,8 +61,6 @@ void output_config() {
     LOG(INFO)<<"DOWN_rqst_queue_size="<<FLAGS_DOWN_rqst_queue_size;
     LOG(INFO)<<"DOWN_rslt_queue_size="<<FLAGS_DOWN_rslt_queue_size;
     LOG(INFO)<<"DOWN_http_page_maxsize="<<FLAGS_DOWN_http_page_maxsize;
-    LOG(INFO)<<"DOWN_usleep="<<FLAGS_DOWN_usleep;
-    LOG(INFO)<<"DOWN_nores_usleep="<<FLAGS_DOWN_nores_usleep;
     LOG(INFO)<<"DOWN_clock_interval_sec="<<FLAGS_DOWN_clock_interval_sec;
     LOG(INFO)<<"DOWN_clock_interval_us="<<FLAGS_DOWN_clock_interval_us;
     LOG(INFO)<<"DOWN_read_timeout_ms="<<FLAGS_DOWN_read_timeout_ms;
@@ -78,8 +77,6 @@ void output_config() {
     LOG(INFO)<<"STORE_format="<<FLAGS_STORE_format;
 
     LOG(INFO)<<"WAITER_threads="<<FLAGS_WAITER_threads;
-    //LOG(INFO)<<"WAITER_usleep="<<FLAGS_WAITER_usleep;
-    //LOG(INFO)<<"WAITER_nores_usleep="<<FLAGS_WAITER_nores_usleep;
     LOG(INFO)<<"WAITER_rqst_queue_size="<<FLAGS_WAITER_rqst_queue_size;
     LOG(INFO)<<"WAITER_rslt_queue_size="<<FLAGS_WAITER_rslt_queue_size;
 }

@@ -45,6 +45,9 @@ struct DnsEntity {
 struct Res {
     std::string url;
     std::string userdata;
+    int err_count;
+    
+    Res(): url(""), userdata(""), err_count(0){}
 };
 
 class ResList 
@@ -148,7 +151,7 @@ public:
     int dnsResult(DnsEntity* dns);
 
     int httpRequest(http_request_t*& rqst, int& wait_ms); // 等待wait_sec后，发起一个http请求
-    int httpResult(http_result_t* result);
+    int httpResult(http_result_t*& result);
 
     void host(std::string& host) { host_ = host; }
     void port(unsigned short port) { port_ = port; }
