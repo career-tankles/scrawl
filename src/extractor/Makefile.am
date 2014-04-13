@@ -35,12 +35,4 @@ noinst_PROGRAMS += cfg_tpl_t
 cfg_tpl_t_SOURCES = cfg_tpl_t.cpp
 cfg_tpl_t_LDADD = $(top_dir)/common/cJSON/libcJSON.a 
 
-noinst_PROGRAMS += search_list_client
-search_list_client_SOURCES = search_list_client.cpp
-search_list_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a \
-                           $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-                           $(top_dir)/common/http_parser/libHttpParser.a  \
-                           $(top_dir)/src/thrift/libspider_webservice.a
-
-
 

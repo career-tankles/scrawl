@@ -34,7 +34,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = client$(EXEEXT)
+noinst_PROGRAMS = query_client$(EXEEXT) search_list_client$(EXEEXT)
 subdir = src/client
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,10 +45,16 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_client_OBJECTS = client.$(OBJEXT)
-client_OBJECTS = $(am_client_OBJECTS)
-client_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
+am_query_client_OBJECTS = query_client.$(OBJEXT)
+query_client_OBJECTS = $(am_query_client_OBJECTS)
+query_client_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
 	${top_dir}/src/thrift/libspider_webservice.a
+am_search_list_client_OBJECTS = search_list_client.$(OBJEXT)
+search_list_client_OBJECTS = $(am_search_list_client_OBJECTS)
+search_list_client_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
+	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+	$(top_dir)/common/http_parser/libHttpParser.a \
+	$(top_dir)/src/thrift/libspider_webservice.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -57,8 +63,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(client_SOURCES)
-DIST_SOURCES = $(client_SOURCES)
+SOURCES = $(query_client_SOURCES) $(search_list_client_SOURCES)
+DIST_SOURCES = $(query_client_SOURCES) $(search_list_client_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -149,11 +155,19 @@ AM_CPPFLAGS = -I. \
                 -I/usr/local/glog-0.3.3/include -I${top_dir}/libs/glog-0.3.3/include \
                 -I/usr/local/gflags-1.2/include -I${top_dir}/libs/gflags-1.2/include \
                 -I${top_dir}/src/thrift/gen-cpp \
-                -I${top_dir}/common/md5
+                -I${top_dir}/common/md5     \
+                -I${top_dir}/common/cJSON   \
+                -I${top_dir}/common/utils 
 
-client_SOURCES = client.cpp
-client_LDADD = ${top_dir}/common/md5/libmd5.a \
-                 ${top_dir}/src/thrift/libspider_webservice.a
+query_client_SOURCES = query_client.cpp
+query_client_LDADD = ${top_dir}/common/md5/libmd5.a \
+                       ${top_dir}/src/thrift/libspider_webservice.a
+
+search_list_client_SOURCES = search_list_client.cpp
+search_list_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a \
+                           $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+                           $(top_dir)/common/http_parser/libHttpParser.a  \
+                           $(top_dir)/src/thrift/libspider_webservice.a
 
 all: all-am
 
@@ -191,9 +205,12 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-client$(EXEEXT): $(client_OBJECTS) $(client_DEPENDENCIES) 
-	@rm -f client$(EXEEXT)
-	$(CXXLINK) $(client_LDFLAGS) $(client_OBJECTS) $(client_LDADD) $(LIBS)
+query_client$(EXEEXT): $(query_client_OBJECTS) $(query_client_DEPENDENCIES) 
+	@rm -f query_client$(EXEEXT)
+	$(CXXLINK) $(query_client_LDFLAGS) $(query_client_OBJECTS) $(query_client_LDADD) $(LIBS)
+search_list_client$(EXEEXT): $(search_list_client_OBJECTS) $(search_list_client_DEPENDENCIES) 
+	@rm -f search_list_client$(EXEEXT)
+	$(CXXLINK) $(search_list_client_LDFLAGS) $(search_list_client_OBJECTS) $(search_list_client_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -201,7 +218,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query_client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search_list_client.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

@@ -20,11 +20,6 @@
 #include "SpiderWebService.h"
 
 #include "cJSON.h"
-#include "HttpParser.h"
-#include "io_ops.h"
-#include "utils.h"
-#include "cfg_tpl.h"
-#include "pugixml_macro.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -118,10 +113,11 @@ int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* 
 
             records++;
 
-            std::vector<std::string> urls;
-            int ret = parse_search_list(jroot, host, &urls, client);
+            //std::vector<std::string> urls;
+            //int ret = parse_search_list(jroot, host, &urls, client);
+            int ret = parse_search_list(jroot, host, NULL, client);
             if(ret == 0) {
-                print(urls);
+                //print(urls);
             } else {
                 LOG(INFO)<<"CLIENT parse error "<<ret;
             }
