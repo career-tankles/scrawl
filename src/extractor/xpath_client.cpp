@@ -27,9 +27,7 @@ using namespace std;
 using namespace apache::thrift;
 using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
-
 using namespace boost;
-
 using namespace spider::webservice ;
 
 #define NODE_EMPTY(_node_) _node_.empty()
@@ -659,7 +657,7 @@ void parseHttpPage(const char* file, std::map<std::string, struct cfg_tpl*>& map
         const char* p = buf;
         while(len > 0) {
             const char* return_parse_end = NULL;
-            cJSON* obj = cJSON_ParseWithOpts(p, &return_parse_end, 0); // obj3!=NULL情况下，return_parse_end通常不为NULL
+            cJSON* obj = cJSON_ParseWithOpts(p, &return_parse_end, 0);
             if(obj == NULL)
                 break; 
             

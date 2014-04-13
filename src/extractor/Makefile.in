@@ -34,7 +34,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-noinst_PROGRAMS = xpath_tools$(EXEEXT) xpath_client$(EXEEXT)
+noinst_PROGRAMS = xpath_tools$(EXEEXT) cfg_tpl_t$(EXEEXT) \
+	search_list_client$(EXEEXT)
 subdir = src/extractor
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,9 +46,12 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_xpath_client_OBJECTS = xpath_client.$(OBJEXT)
-xpath_client_OBJECTS = $(am_xpath_client_OBJECTS)
-xpath_client_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
+am_cfg_tpl_t_OBJECTS = cfg_tpl_t.$(OBJEXT)
+cfg_tpl_t_OBJECTS = $(am_cfg_tpl_t_OBJECTS)
+cfg_tpl_t_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a
+am_search_list_client_OBJECTS = search_list_client.$(OBJEXT)
+search_list_client_OBJECTS = $(am_search_list_client_OBJECTS)
+search_list_client_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
 	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
 	$(top_dir)/common/http_parser/libHttpParser.a \
 	$(top_dir)/src/thrift/libspider_webservice.a
@@ -64,8 +68,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(xpath_client_SOURCES) $(xpath_tools_SOURCES)
-DIST_SOURCES = $(xpath_client_SOURCES) $(xpath_tools_SOURCES)
+SOURCES = $(cfg_tpl_t_SOURCES) $(search_list_client_SOURCES) \
+	$(xpath_tools_SOURCES)
+DIST_SOURCES = $(cfg_tpl_t_SOURCES) $(search_list_client_SOURCES) \
+	$(xpath_tools_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -168,11 +174,13 @@ xpath_tools_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                     $(top_dir)/common/http_parser/libHttpParser.a 
 
-xpath_client_SOURCES = xpath_client.cpp
-xpath_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
-                     $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-                     $(top_dir)/common/http_parser/libHttpParser.a  \
-                     $(top_dir)/src/thrift/libspider_webservice.a
+cfg_tpl_t_SOURCES = cfg_tpl_t.cpp
+cfg_tpl_t_LDADD = $(top_dir)/common/cJSON/libcJSON.a 
+search_list_client_SOURCES = search_list_client.cpp
+search_list_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a \
+                           $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+                           $(top_dir)/common/http_parser/libHttpParser.a  \
+                           $(top_dir)/src/thrift/libspider_webservice.a
 
 all: all-am
 
@@ -210,9 +218,12 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-xpath_client$(EXEEXT): $(xpath_client_OBJECTS) $(xpath_client_DEPENDENCIES) 
-	@rm -f xpath_client$(EXEEXT)
-	$(CXXLINK) $(xpath_client_LDFLAGS) $(xpath_client_OBJECTS) $(xpath_client_LDADD) $(LIBS)
+cfg_tpl_t$(EXEEXT): $(cfg_tpl_t_OBJECTS) $(cfg_tpl_t_DEPENDENCIES) 
+	@rm -f cfg_tpl_t$(EXEEXT)
+	$(CXXLINK) $(cfg_tpl_t_LDFLAGS) $(cfg_tpl_t_OBJECTS) $(cfg_tpl_t_LDADD) $(LIBS)
+search_list_client$(EXEEXT): $(search_list_client_OBJECTS) $(search_list_client_DEPENDENCIES) 
+	@rm -f search_list_client$(EXEEXT)
+	$(CXXLINK) $(search_list_client_LDFLAGS) $(search_list_client_OBJECTS) $(search_list_client_LDADD) $(LIBS)
 xpath_tools$(EXEEXT): $(xpath_tools_OBJECTS) $(xpath_tools_DEPENDENCIES) 
 	@rm -f xpath_tools$(EXEEXT)
 	$(CXXLINK) $(xpath_tools_LDFLAGS) $(xpath_tools_OBJECTS) $(xpath_tools_LDADD) $(LIBS)
@@ -223,7 +234,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xpath_client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg_tpl_t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search_list_client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xpath_tools.Po@am__quote@
 
 .cpp.o:
