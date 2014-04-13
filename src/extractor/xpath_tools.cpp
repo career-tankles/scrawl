@@ -202,7 +202,9 @@ int _extract_data_(std::string host, const char* resp_headers, const char* resp_
                 cJSON* jnew_results = cJSON_CreateArray();
                 std::map<std::string, std::string>::iterator iter = out_headers.begin();
                 for(; iter!=out_headers.end(); iter++) {
-                    cJSON_AddStringToObject(jnew_results, iter->first.c_str(), iter->second.c_str());
+                    cJSON* jresult = cJSON_CreateObject();
+                    cJSON_AddStringToObject(jresult, iter->first.c_str(), iter->second.c_str());
+                    cJSON_AddItemToArray(jnew_results, jresult);
                 }
                 cJSON_AddItemToObject(jnew_root, "results", jnew_results);
                 //std::cout<<cJSON_Print(jnew_root)<<std::endl;
