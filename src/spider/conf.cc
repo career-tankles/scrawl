@@ -3,6 +3,7 @@
 #include <glog/logging.h>
 
 DEFINE_int32(SERVER_thrift_port, 9090, ""); 
+DEFINE_int32(SERVER_thrift_threadnum, 10, ""); 
 
 DEFINE_int32(RES_url_list_queue_size, 20000, ""); 
 DEFINE_int32(RES_usleep, 100, "");
@@ -47,6 +48,8 @@ DEFINE_int32(WAITER_rqst_queue_size, 10000, "");
 DEFINE_int32(WAITER_rslt_queue_size, 10000, "");
 
 void output_config() {
+    LOG(INFO)<<"SERVER_thrift_port="<<FLAGS_SERVER_thrift_port;
+    LOG(INFO)<<"SERVER_thrift_threadnum="<<FLAGS_SERVER_thrift_threadnum;
     LOG(INFO)<<"RES_url_list_queue_size="<<FLAGS_RES_url_list_queue_size;
     LOG(INFO)<<"RES_usleep="<<FLAGS_RES_usleep;
     LOG(INFO)<<"DNS_threads="<<FLAGS_DNS_threads;

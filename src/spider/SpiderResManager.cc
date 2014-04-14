@@ -294,7 +294,8 @@ int SpiderResManager::svc() {
             }
         } 
         usleep(FLAGS_RES_usleep);
-    }
+
+    } // while(is_running_)
 
     return 0;
 }

@@ -7,6 +7,7 @@
 void output_config() ;
 
 DECLARE_int32(SERVER_thrift_port);
+DECLARE_int32(SERVER_thrift_threadnum);
 
 DECLARE_int32(RES_url_list_queue_size); 
 DECLARE_int32(RES_usleep);

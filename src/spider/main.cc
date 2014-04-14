@@ -75,7 +75,7 @@ struct _spider_thread_ {
         boost::shared_ptr<SpiderResManager> spider = *(boost::shared_ptr<SpiderResManager>*)args;
         spider->start();
         spider->run_loop();
-        spider->stop();
+        //spider->stop();
     }
 };
 
@@ -92,38 +92,50 @@ int main(int argc, char **argv) {
     threadpool.create_thread(_spider_thread_(), (void*)&spider);
 
     // thrift service 
-  int port = FLAGS_SERVER_thrift_port;
-  shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(spider));
-  shared_ptr<TProcessor> processor(new SpiderWebServiceProcessor(handler));
-  shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
-  shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
-  shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
-
-  //TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
-  int workerCount = 10;
-  shared_ptr<ThreadManager> threadManager =
-    ThreadManager::newSimpleThreadManager(workerCount);
-  shared_ptr<PosixThreadFactory> threadFactory =
-    shared_ptr<PosixThreadFactory>(new PosixThreadFactory());
-  threadManager->threadFactory(threadFactory);
-  threadManager->start();
-  TThreadPoolServer server(processor,
-                           serverTransport,
-                           transportFactory,
+    int port = FLAGS_SERVER_thrift_port;
+    shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(spider));
+    shared_ptr<TProcessor> processor(new SpiderWebServiceProcessor(handler));
+    shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
+    shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
+    shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
+ 
+    //TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+    int workerCount = FLAGS_SERVER_thrift_threadnum;
+    shared_ptr<ThreadManager> threadManager =
+      ThreadManager::newSimpleThreadManager(workerCount);
+    shared_ptr<PosixThreadFactory> threadFactory =
+      shared_ptr<PosixThreadFactory>(new PosixThreadFactory());
+    threadManager->threadFactory(threadFactory);
+    threadManager->start();
+    TThreadPoolServer server(processor,
+                             serverTransport,
+                             transportFactory,
                            protocolFactory,
                            threadManager);
-/*
-  TThreadedServer server(processor,
+  /*
+    TThreadedServer server(processor,
                          serverTransport,
                          transportFactory,
                          protocolFactory);
 
   */
 
+  
+    printf("Starting the server...\n");
+    server.serve();
+    printf("done.\n");
 
-  printf("Starting the server...\n");
-  server.serve();
-  printf("done.\n");
-  return 0;
+    return 0;
 }
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
