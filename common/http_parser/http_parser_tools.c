@@ -270,6 +270,16 @@ static http_parser_settings settings_count_body =
 
 int main(int argc, char** argv)
 {
+
+    // http_parser_parse_url(const char *buf, size_t buflen, int is_connect, struct http_parser_url *u)
+    struct http_parser_url u;
+    const char* url = "http%3A%2F%2Fwww.bxwx.org%2Fb%2F65%2F65481%2F";
+    int ret = http_parser_parse_url(url, strlen(url), 0, &u);
+    fprintf(stderr, "ret=%d %s %s %s\n", u.field_data[UF_SCHEMA], u.field_data[UF_HOST], u.field_data[UF_QUERY]);
+
+
+    return 0;
+
     const char* filename = "response.txt";
     if(argc == 2)
         filename = argv[1];
@@ -292,4 +302,5 @@ int main(int argc, char** argv)
     //parsed_len = http_parser_execute(parser, &settings_count_body, data+parsed_len, len-parsed_len);
     //fprintf(stderr, "len=%d paserd-len=%d num_messages=%d\n", len, parsed_len, num_messages);
     
+
 }

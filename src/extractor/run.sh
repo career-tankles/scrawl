@@ -4,8 +4,8 @@ cd ../..
 . env.sh
 cd - >/dev/null
 
-src_data=/tmp/spider/data/data-00-005
-#src_data=/tmp/spider/data/location_transcoding.data
+#src_data=/tmp/spider/data/data-00-005
+src_data=/tmp/spider/data/location_transcoding.data
 
 rm -f input.json
 if [ "$#" == "1" ]; then
