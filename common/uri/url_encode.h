@@ -20,7 +20,7 @@
  * @param resultSize 结果缓冲区的大小(包括最后的\0)
  *
  * @return: >0:resultstring 里实际有效的长度
- *            0: 解码失败.
+ *          <0: 解码失败.
  */
 int URLEncode(const char* str, const int strSize, char* result, const int resultSize)
 {
@@ -29,7 +29,7 @@ int URLEncode(const char* str, const int strSize, char* result, const int result
     char ch;
 
     if ((str==NULL) || (result==NULL) || (strSize<=0) || (resultSize<=0)) {
-        return 0;
+        return -1;
     }
 
     for ( i=0; (i<strSize)&&(j<resultSize); ++i) {
@@ -47,7 +47,7 @@ int URLEncode(const char* str, const int strSize, char* result, const int result
                 sprintf(result+j, "%%%02X", (unsigned char)ch);
                 j += 3;
             } else {
-                return 0;
+                return -1;
             }
         }
     }

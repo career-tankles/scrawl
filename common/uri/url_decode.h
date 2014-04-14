@@ -33,7 +33,7 @@ static int hex2num(char c)
  * @param resultSize 结果地址的缓冲区大小(包括最后的\0)
  *
  * @return: >0 result 里实际有效的字符串长度
- *            0 解码失败
+ *          <0 解码失败
  */
 static int URLDecode(const char* str, const int strSize, char* result, const int resultSize)
 {
@@ -42,7 +42,7 @@ static int URLDecode(const char* str, const int strSize, char* result, const int
     int j = 0;//record result index
 
     if ((str==NULL) || (result==NULL) || (strSize<=0) || (resultSize<=0)) {
-        return 0;
+        return -1;
     }
 
     for ( i=0; (i<strSize) && (j<resultSize); ++i) {
