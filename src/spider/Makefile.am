@@ -38,11 +38,19 @@ service_spider_LDADD   = libSpiderResManager.a \
                          ${top_dir}/common/cJSON/libcJSON.a \
                          ${top_dir}/common/http_parser/libHttpParser.a
 
-#noinst_PROGRAMS   += dns_tools download_tools TimeWait_tools
-#dns_tools_SOURCES = dns-tools.cc
-#dns_tools_LDADD   = libdns.a
-#download_tools_SOURCES = download-tools.cc
-#download_tools_LDADD = libdownload.a
-#TimeWait_tools_SOURCES = TimeWait-tools.cc
-#TimeWait_tools_LDADD = libtimewait.a libdownload.a 
+SPIDER_SYMBOL_FILES = spider
+install-exec-hook:
+	cd $(sbindir) && \
+    for i in $(SPIDER_SYMBOL_FILES); \
+    do \
+        rm -f $$i && \
+        $(LN_S) service_spider $$i; \
+    done
+
+uninstall-hook:
+	cd $(sbindir) && \
+    for i in $(SPIDER_SYMBOL_FILES); \
+    do \
+        rm -f $$i; \
+    done
 

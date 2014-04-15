@@ -12,7 +12,6 @@ gen-cpp/spider_constants.cpp:
 	${THRIFT} -r --gen py spider.thrift
 
 noinst_LIBRARIES = libspider_webservice.a
-
-libspider_webservice_a_SOURCES = gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
+libspider_webservice_a_SOURCES = ThriftClientWrapper.cpp gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
 
 

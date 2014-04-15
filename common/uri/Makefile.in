@@ -107,6 +107,7 @@ LIBS = \
         -L/usr/local/thrift-0.9.1/lib -lthrift \
         -levent
 
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@

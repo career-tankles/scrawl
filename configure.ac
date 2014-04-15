@@ -4,6 +4,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+AC_PROG_LN_S
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
     Makefile
@@ -20,7 +21,9 @@ AC_CONFIG_FILES([
     src/spider/Makefile
     src/client/Makefile
     src/extractor/Makefile
+    src/dispatcher/Makefile
     test/Makefile
+    scripts/Makefile
 ])
 AC_OUTPUT
 

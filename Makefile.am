@@ -9,4 +9,5 @@ AM_CPPFLAGS =   -I/usr/local/boost-1.50.0/include \
 LIBS =  -L/usr/local/boost-1.50.0/lib -lboost_thread  \
         -L/usr/local/glog-0.3.3/lib -lglog 
 
-SUBDIRS = common src test
+SUBDIRS = common src scripts test
+

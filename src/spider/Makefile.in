@@ -114,6 +114,7 @@ LIBS = -L. \
         -L/usr/local/thrift-0.9.1/lib -L${top_dir}/libs/thrift-0.9.1/lib -lthrift \
         -L/usr/local/libevent/lib -L${top_dir}/libs/libevent/lib -L${top_dir}/libs/libevent-1.4.10/lib -levent 
 
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
@@ -187,6 +188,7 @@ service_spider_LDADD = libSpiderResManager.a \
                          ${top_dir}/common/cJSON/libcJSON.a \
                          ${top_dir}/common/http_parser/libHttpParser.a
 
+SPIDER_SYMBOL_FILES = spider
 all: all-am
 
 .SUFFIXES:
@@ -414,6 +416,8 @@ info-am:
 install-data-am:
 
 install-exec-am: install-binPROGRAMS
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 
 install-info: install-info-am
 
@@ -439,27 +443,35 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-info-am
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
 	clean-generic clean-noinstLIBRARIES ctags distclean \
 	distclean-compile distclean-generic distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-binPROGRAMS install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-info-am
+	install-exec-am install-exec-hook install-info install-info-am \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
+	ps ps-am tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-hook uninstall-info-am
 
+install-exec-hook:
+	cd $(sbindir) && \
+    for i in $(SPIDER_SYMBOL_FILES); \
+    do \
+        rm -f $$i && \
+        $(LN_S) service_spider $$i; \
+    done
 
-#noinst_PROGRAMS   += dns_tools download_tools TimeWait_tools
-#dns_tools_SOURCES = dns-tools.cc
-#dns_tools_LDADD   = libdns.a
-#download_tools_SOURCES = download-tools.cc
-#download_tools_LDADD = libdownload.a
-#TimeWait_tools_SOURCES = TimeWait-tools.cc
-#TimeWait_tools_LDADD = libtimewait.a libdownload.a 
+uninstall-hook:
+	cd $(sbindir) && \
+    for i in $(SPIDER_SYMBOL_FILES); \
+    do \
+        rm -f $$i; \
+    done
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -102,6 +102,7 @@ LIBS = -L. \
         -L/usr/local/gflags-1.2/lib -L${top_dir}/libs/gflags-1.2/lib -lgflags   \
        -L/usr/local/thrift-0.9.1/lib -I${top_dir}/libs/thrift-0.9.1/lib -lthrift
 
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@

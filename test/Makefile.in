@@ -98,6 +98,7 @@ LIBS = -L/usr/local/glog-0.3.3/lib -L${top_dir}/libs/glog-0.3.3/lib -lglog \
        -L/usr/local/boost-1.50.0/lib -L${top_dir}/libs/boost-1.50.0/lib -lboost_thread -lboost_system \
        -L/usr/local/libevent-1.4.10/lib -L${top_dir}/libs/libevent-1.4.10/lib -levent 
 
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@

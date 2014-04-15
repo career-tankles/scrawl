@@ -48,8 +48,9 @@ AR = ar
 ARFLAGS = cru
 libspider_webservice_a_AR = $(AR) $(ARFLAGS)
 libspider_webservice_a_LIBADD =
-am_libspider_webservice_a_OBJECTS = spider_constants.$(OBJEXT) \
-	spider_types.$(OBJEXT) SpiderWebService.$(OBJEXT)
+am_libspider_webservice_a_OBJECTS = ThriftClientWrapper.$(OBJEXT) \
+	spider_constants.$(OBJEXT) spider_types.$(OBJEXT) \
+	SpiderWebService.$(OBJEXT)
 libspider_webservice_a_OBJECTS = $(am_libspider_webservice_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -93,6 +94,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = -L/usr/local/thrift-0.9.1/lib -lthrift
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
@@ -147,7 +149,7 @@ AM_CPPFLAGS = -I/usr/local/thrift-0.9.1/include \
 
 THRIFT = /usr/local/thrift-0.9.1/bin/thrift
 noinst_LIBRARIES = libspider_webservice.a
-libspider_webservice_a_SOURCES = gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
+libspider_webservice_a_SOURCES = ThriftClientWrapper.cpp gen-cpp/spider_constants.cpp gen-cpp/spider_types.cpp gen-cpp/SpiderWebService.cpp
 all: all-am
 
 .SUFFIXES:
@@ -196,6 +198,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SpiderWebService.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ThriftClientWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spider_constants.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spider_types.Po@am__quote@
 

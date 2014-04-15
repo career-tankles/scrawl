@@ -1,3 +1,3 @@
 
-SUBDIRS = thrift spider client extractor
+SUBDIRS = thrift spider extractor client dispatcher
 
