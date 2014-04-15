@@ -222,7 +222,6 @@ int _res_to_str_(Res* res, std::string& s) {
     cJSON_AddStringToObject(jnew_root, "url", res->url.c_str());
     if(!res->userdata.empty())
         cJSON_AddStringToObject(jnew_root, "userdata", res->userdata.c_str());
-    LOG(INFO)<<"AAA: "<<res->userdata;
     if(res->err_count != 0)
         cJSON_AddNumberToObject(jnew_root, "err_count", res->err_count);
 

@@ -20,9 +20,11 @@ class storage
 {
 public:
     storage() 
-      : data_prefix_(FLAGS_STORE_file_dir), cur_file_(""), fd_(-1), file_no_(-1)
+      : data_prefix_(FLAGS_STORE_file_dir), cur_file_(""), fd_(-1), file_no_(-1), last_switch_file_time_hour_(0)
     {
         //pthread_mutex_init(&mutex_, NULL);
+        if(FLAGS_STORE_file_swith_time_sec <= 0)
+            FLAGS_STORE_file_swith_time_sec = 3600;
     }
     ~storage() {
         //pthread_mutex_destroy(&mutex_);
@@ -104,29 +106,31 @@ private:
     }
 
     int switch_file() {
+
+        time_t now = time(NULL);
         if(fd_ == -1) {
             int new_fno = new_fileno();
             char buf[256] = {0};
             sprintf(buf, "%s-%03d", data_prefix_.c_str(), new_fno);
             cur_file_ = buf;
             fd_ = open(buf);
+            last_switch_file_time_hour_ = now/FLAGS_STORE_file_swith_time_sec;
             return 1;
         } else {
             struct stat stat_buf;
             int res = fstat(fd_, &stat_buf);
             if(res == -1)
                 exit(1);
-            time_t now = time(NULL);
-            if(stat_buf.st_size >= FLAGS_STORE_file_max_size || (stat_buf.st_size > 0 && last_switch_file_time_sec_+FLAGS_STORE_file_swith_time_sec <= now)) {
+            if(stat_buf.st_size >= FLAGS_STORE_file_max_size || (stat_buf.st_size > 0 && now/FLAGS_STORE_file_swith_time_sec != last_switch_file_time_hour_ )) {
                 // 切换新文件
                 close(fd_);
                 int new_fno = new_fileno();
                 char buf[256] = {0};
-                sprintf(buf, "%s-%03d", data_prefix_.c_str(), new_fno);
-                LOG(INFO)<<"STORAGE new file "<<stat_buf.st_size<<" "<<FLAGS_STORE_file_max_size<<" "<<last_switch_file_time_sec_<<" "<<buf;
+                sprintf(buf, "%s-%03d.data", data_prefix_.c_str(), new_fno);
+                LOG(INFO)<<"STORAGE new file "<<stat_buf.st_size<<" "<<FLAGS_STORE_file_max_size<<" "<<last_switch_file_time_hour_<<" "<<buf;
                 cur_file_ = buf;
                 fd_ = open(buf);
-                last_switch_file_time_sec_ = now;
+                last_switch_file_time_hour_ = now/FLAGS_STORE_file_swith_time_sec;
                 return 1;
             }
         }
@@ -160,7 +164,7 @@ private:
 
     int file_no_;               // 文件编号
     //pthread_mutex_t mutex_;
-    time_t last_switch_file_time_sec_;
+    time_t last_switch_file_time_hour_;
 
 };
 
@@ -188,7 +192,7 @@ public:
         int threadnum = p->num;
 
         char buf[256] = {0};
-        sprintf(buf, "%s/data-%02d", data_dir.c_str(), threadnum);
+        sprintf(buf, "%s/spider-%02d", data_dir.c_str(), threadnum);
 
         storage storage_;
         storage_.init(std::string(buf));

@@ -162,6 +162,8 @@ int main(int argc, char** argv)
         // 解析数据
         if(FLAGS_CLIENT_input_format == "JSON") {
             parse_search_list_json(FLAGS_CLIENT_input_file, &client);
+        } else {
+            LOG(INFO)<<"Unknown input_format, currently only JSON support";
         }
     
     } catch (TException &tx) {
