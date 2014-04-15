@@ -1,0 +1,167 @@
+#!/usr/bin/env python
+import sys
+import getopt
+#import paramiko
+import getpass
+
+SSH_PORT = 22
+
+def Usage():
+    usage = '''
+        Usage: 
+            -s,--server <servers>:  servers, such as "s1", "s1,s2,s5", "s1,10.138.69.xxx" 
+            -c,--cmd <cmds>:        non-interactive commands(interactive not supported yet)
+            -u,--user <user>:       user
+            -p,--passwd:  	    passwd(NOTE: not input in plain)
+            -r <servers>:           resolve ip address
+            -f, --host_file <servers_file>: execute command at servers in servers_file
+
+        Samples: 
+            remote_cmds -s s1,s5 -c "ps -ef | grep bs_server; pwd"  # need ssh auto login
+            remote_cmds -s s2,s3 -c "df -h; ls" -u wangfengliang -p # input passwd later
+            remote_cmds -s s2,10.138.69.137 -c "df -h; ls" -u wangfengliang 
+    '''
+    print usage
+
+known_server_maps = {
+#    's1': '\ts1.mse.bjdt.qihoo.net\n\t10.138.69.135', 
+#    's2': '\ts2.mse.bjdt.qihoo.net\n\t10.138.69.136', 
+#    's3': '\ts3.mse.bjdt.qihoo.net\n\t10.138.69.137', 
+#    's4': '\ts4.mse.bjdt.qihoo.net\n\t10.138.69.138', 
+#    's5': '\ts5.mse.bjdt.qihoo.net\n\t10.138.69.139',
+    's1': 's1.mse.bjdt.qihoo.net', 
+    's2': 's2.mse.bjdt.qihoo.net', 
+    's3': 's3.mse.bjdt.qihoo.net', 
+    's4': 's4.mse.bjdt.qihoo.net', 
+    's5': 's5.mse.bjdt.qihoo.net',
+    'web': '\tms_web01v.add.bjdt.qihoo.net\n\tms_web02v.add.bjdt.qihoo.net\n\tms_web01v.add.shjc.qihoo.net\n\tms_web02v.add.shjc.qihoo.net\n\ts1.mse.zzbc2.qihoo.net\n\ts2.mse.zzbc2.qihoo.net',
+    'bjdt': '\ts1.mse.bjdt.qihoo.net\n\ts2.mse.bjdt.qihoo.net\n\ts3.mse.bjdt.qihoo.net\n\ts4.mse.bjdt.qihoo.net\n\ts5.mse.bjdt.qihoo.net',
+    'shjc': '\ti01.mse.shjc.qihoo.net\n\ti02.mse.shjc.qihoo.net\n\ts1.mse.shjc.qihoo.net\n\ts2.mse.shjc.qihoo.net',
+    'zzbc': '\ti01.mse.zzbc2.qihoo.net\n\ti02.mse.zzbc2.qihoo.net\n\ts1.mse.zzbc2.qihoo.net\n\ts2.mse.zzbc2.qihoo.net',
+    'hadoop': 'client40v.qss.zzbc2.qihoo.net client41v.qss.zzbc2.qihoo.net',
+}
+
+def get_local_ip(ifname): 
+    import socket, fcntl, struct 
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+    inet = fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15])) 
+    ip = socket.inet_ntoa(inet[20:24]) 
+    return ip 
+#print get_local_ip('eth0')
+
+import subprocess
+def execute_output(cmds):
+    p = subprocess.Popen(cmds, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p.wait()
+    return p
+
+# s1,s2,s3
+def parse_host(host_str):
+    hosts = host_str.split(',')
+    return hosts
+
+def print_ip(host_str):
+    if host_str == 'ALL' or host_str == 'all':
+        for (k, v) in known_server_maps.items():
+           print '%s: %s\n' % (k, v)
+        return
+
+    hosts = parse_host(host_str)
+    for host in hosts:
+        ip = host
+        if host in known_server_maps:
+            ip = known_server_maps[host]
+        print '%s -> %s' % (host, ip)
+
+def remote_cmd__(alias, host, cmd, user, passwd, port=22):
+    print alias, host, '"%s"' % cmd
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host, port, user, passwd, timeout=10)
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        for line in stdout.readlines():
+            sys.stdout.write('%s' % line)
+        for line in stderr.readlines():
+            sys.stderr.write('%s' % line)
+    except Exception, e:
+	print 'ERROR: %s' % str(e)
+	if str(e).find('Authentication failed') != -1:
+        	print "USER: %s, please use -p to input passwd" % getpass.getuser()
+		Usage() 
+
+def remote_cmd(alias, host, cmd, user, passwd, port=22):
+    #print alias, host, '"%s"' % cmd
+    print '\033[32;49;1m %s -> %s: %s \033[0m' % (alias, host, cmd)
+    try:
+        cmds = 'ssh %s "%s"' % (host, cmd)
+        p = execute_output(cmds)
+        for line in p.stdout.readlines():
+            sys.stdout.write('%s' % line)
+        for line in p.stderr.readlines():
+            sys.stderr.write('%s' % line)
+        sys.stderr.write('\n\n')
+    except Exception, e:
+	print 'ERROR: %s' % str(e)
+	if str(e).find('Authentication failed') != -1:
+        	print "USER: %s, please use -p to input passwd" % getpass.getuser()
+		Usage() 
+
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv[1:], 'hs:u:pc:r:f:', ['help', 'host=', 'cmd=', 'user=', 'passwd', 'resolve=', 'host_file='])
+    except getopt.GetoptError, e:
+        print str(e)
+        Usage()
+        sys.exit(2)
+
+    host_str = ''
+    cmds = ''
+    user = getpass.getuser() # default login user
+    passwd = ''
+    echo_ips = False
+
+    host_file = ''
+
+    for o, a in opts:
+        if o in ('-h', '--help'):
+            Usage()
+            sys.exit(0)
+        elif o in ('-s', '--server'):
+            host_str = a
+        elif o in ('-c', '--cmd'):
+            cmds = a
+        elif o in ('-u', '--user'):
+            user = a
+        elif o in ('-p', '--passwd'):
+            passwd = getpass.getpass('password: ')
+        elif o in ('-r', '--resolve'):
+            print_ip(a)
+            sys.exit(3)
+        elif o in ('-f', '--host_file'):
+            host_file = a           
+        else:
+            print 'unhandled option'
+            sys.exit(3)
+
+    hosts = []
+    if host_file and len(host_file) > 0:
+        fp = open(host_file)
+        hosts = fp.readlines()
+        fp.close()
+    else:
+        hosts = parse_host(host_str)
+    for host in hosts:
+        host = host.strip()
+        if not host or len(host) <= 0:
+            continue
+        if host.startswith('#'):
+            continue
+        ip = host
+        if host in known_server_maps:
+            ip = known_server_maps[host]
+        remote_cmd(host, ip, cmds, user, passwd, SSH_PORT)
+
+if __name__ == '__main__':
+    main(sys.argv)
+

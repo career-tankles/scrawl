@@ -1,0 +1,300 @@
+#!/usr/bin/python 
+#-*- coding: utf-8 -*-
+
+import getopt
+import getpass
+
+conf_usage='''
+配置文件使用说明:
+同步文件or文件夹有下面几种情况:
+1. 文件到远程文件
+    config = {
+        'type': 1,
+        'files': [          # 满足:这里只能指定一个文件,否则产生覆盖
+            'test/a.txt',
+        ],
+        'hosts': [          # 可以指定多个host
+            ('host1', 'xxxx_path_xxx/xxx.txt'),
+            ('host2', 'xxxx_path_xxx/xxx.txt'),
+            ('host3', 'xxxx_path_xxx/xxx.txt'),
+        ]
+    }
+NOTE: 此种模式不能与下面几种一块使用。
+
+2.  a) 文件到远程目录下
+    b) 目录到远程目录下
+    c) 目录下所有文件到远程目录下
+
+    这几种模式可以同时使用，但是需要满足一些条件，如下:
+    config = {
+        #'type': 2,         # 满足: type=2 or 不用指定type(默认为2)
+        'files': [          # 可以混合采用下面几种
+            'test/a.txt',   # a)文件到远程目录下模式: 满足：host中指定的目录以'/'结尾, 否则host中指定的被认为是文件
+            'test',         # b)目录到远程目录下模式: 满足: path结尾没有'/'
+            'test2/',       # c)目录下所有文件到远程目录下: 满足：path以'/'结尾
+        ],
+        'hosts': [          # 可以指定多个host
+            ('host1', 'xxxx_path_xxx/'),    # 存在a)模式，且files中第一个file为文件时，这里path必须以'/'结尾
+            ('host2', 'xxxx_path_xxx/'),
+            ('host3', 'xxxx_path_xxx/'),
+        ]
+    }
+'''
+
+# type=2配置
+# cmds:
+#  mkdir test1 test2
+#  touch a.txt test1/test1.txt test2/test2.txt
+#  ./rsync-tool rsync-tool.conf
+#config = {
+#    #'type': 2,         # 满足: type=2 or 不用指定type(默认为2)
+#    'files': [          # 可以混合采用下面几种
+#        'a.txt',        # a)文件到远程目录下模式: 满足：host中指定的目录以'/'结尾, 否则host中指定的被认为是文件
+#        'test1',        # b)目录到远程目录下模式: 满足: path结尾没有'/'
+#        'test2/',       # c)目录下所有文件到远程目录下: 满足：path以'/'结尾
+#    ],
+#    'hosts': [          # 可以指定多个host
+#        ('localhost', '/data/autodeploy/tools/remote_Test1/'),    # 存在a)模式，且files中第一个file为文件时，这里path必须以'/'结尾，否则没有要求
+#        ('localhost', '/data/autodeploy/tools/remote_Test2/'),
+#    ]
+#}
+
+
+import os, sys
+import imp
+import subprocess
+
+def execute_output(cmds):
+    p = subprocess.Popen(cmds, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p.wait()
+    print cmds, p.stdout.readlines()
+    if p.returncode == 0:
+        print 'execute cmd successful!\n'
+    else:
+        print 'execute cmd failed!\n'
+    return p.returncode
+
+def execute_r(cmds):
+    p = subprocess.Popen(cmds, shell=True)
+    p.wait()
+    return p
+
+def execute(cmds):
+    print cmds
+    return subprocess.call(cmds, shell=True)
+
+RSYNC_CMD="rsync -avlz "
+#RSYNC_CMD="scp -r "
+
+# 1. 将src_file同步为远程机器的remote_file文件
+def _rsync_file_TO_remote_file(src_file, remote_host, remote_file):
+    assert len(src_file) > 2 and len(remote_host) > 5
+    assert len(remote_file) > 2 
+    remote_path = os.path.dirname(remote_file)
+    print remote_path
+    cmd1 = 'ssh %s "mkdir -p %s"' % (remote_host, remote_path)
+    p = execute_output(cmd1)
+    if p == 0: # 执行成功or
+        global RSYNC_CMD
+        cmd2 = '%s %s %s:%s' % (RSYNC_CMD, src_file, remote_host, remote_file)
+        print cmd2
+        p = execute(cmd2)
+        if p == 0: # 成功
+            return True
+    return False
+
+# 2. 将src_file同步到远程机器的remote_path目录下
+def _rsync_file_TO_remote_path(src_file, remote_host, remote_path):
+    assert len(src_file) > 2 and len(remote_host) > 5
+    assert len(remote_path) > 2 
+    cmd1 = 'ssh %s "mkdir -p %s"' % (remote_host, remote_path)
+    p = execute_output(cmd1)
+    if p == 0: # 执行成功or
+        global RSYNC_CMD
+        cmd2 = '%s %s %s:%s' % (RSYNC_CMD, src_file, remote_host, remote_path)
+        print cmd2
+        p = execute(cmd2)
+        if p == 0: # 成功
+            return True
+    return False
+
+
+# 3. 将src_path目录同步到远程机器的dst_path目录下
+def _rsync_path_UNDER_remote_path(src_path, remote_host, remote_path):
+    assert len(src_path) > 2 and len(remote_host) > 5
+    assert len(remote_path) > 2
+
+    #if src_path.endswith('/'):
+    #    src_path = src_path[:-1]
+
+    # create dir
+    cmd1 = 'ssh %s "mkdir -p %s"' % (remote_host, remote_path)
+    print cmd1
+    p = execute_output(cmd1)
+    cmd = '%s %s %s:%s' % (RSYNC_CMD, src_path, remote_host, remote_path)
+    print cmd
+    p = execute(cmd)
+    if p == 0: # 成功
+        return True
+    return False
+
+# 4. 将src_path目录下的所有文件同步到远程机器的dst_path目录下
+def _rsync_files_in_path_UNDER_remote_path(src_path, remote_host, remote_path):
+    assert len(src_path) > 2 and len(remote_host) > 5
+    assert len(remote_path) > 2
+
+    if src_path.endswith('/*'):
+        src_path = src_path[:-2]
+    elif src_path.endswith('/'):
+        src_path = src_path[:-1]
+
+    cmd = '%s %s/ %s:%s' % (RSYNC_CMD, src_path, remote_host, remote_path)
+    print cmd
+    p = execute(cmd)
+    if p == 0:
+        return True
+    return False
+
+def rsync_file(src_path_or_file, remote_host, remote_path, type):
+    if not os.path.exists(src_path_or_file): # not exit
+        print 'ERROR: %s not exist!' % src_path_or_file
+        return False
+    #os.path.isfile(src_path_or_file)
+    
+    if type == 1:
+        _rsync_file_TO_remote_file(src_path_or_file, remote_host, remote_path)
+    elif type == 2:
+        _rsync_path_UNDER_remote_path(src_path_or_file, remote_host, remote_path)
+    #if type == 1:
+    #    _rsync_file_TO_remote_file(src_path_or_file, remote_host, remote_path)
+    #elif type == 2:
+    #    _rsync_file_TO_remote_path(src_path_or_file, remote_host, remote_path)
+    #elif type == 3:
+    #    _rsync_path_UNDER_remote_path(src_path_or_file, remote_host, remote_path)
+    #elif type == 4:
+    #    _rsync_files_in_path_UNDER_remote_path(src_path_or_file, remote_host, remote_path)
+    else:
+        assert false, 'unknown type=%s, should be 1-4' % type
+
+def dir_rsync_remote_to_remote(src_host, src_path, dst_host, dst_path, isclear_dst=False):
+    assert len(dst_path.strip()) > 0
+    assert len(src_path.strip()) > 0
+    rm_cmd = ''
+    isclear_msg = ''
+    if isclear_dst:
+        rm_cmd = 'rm -rf %s;' % dst_path
+        #rm_cmd = 'rm -rf %s' % dst_path
+        isclear_msg = '[cleared]'
+    print '%s:%s -> %s:%s %s' % (src_host, src_path, dst_host, dst_path, isclear_msg)
+
+    rsync_path = '/project/upload/TMP-rsync'
+    rsync_path_s = 'upload/TMP-rsync'
+
+    src_cmd = 'rsync -avz %s %s::%s' % (src_path, dst_host, rsync_path_s)
+    if src_host != 'localhost' and src_host != '127.0.0.1':
+        src_cmd = 'ssh %s "%s"' % (src_host, src_cmd)
+
+    dst_cmd = '%s [ -d \"%s\" ] && rsync -avz %s/ %s || rsync -avz %s %s; rm -rf %s' % (rm_cmd, rsync_path, rsync_path, dst_path, rsync_path, dst_path, rsync_path)
+    #dst_cmd = ' [ -d \"%s\" ] && { %s/*; rsync -az %s/ %s; } || { %s; rsync -az %s %s; }; rm -rf %s' % (rsync_path, rm_cmd, rsync_path, dst_path, rm_cmd, rsync_path, dst_path, rsync_path)
+    if dst_host != 'localhost' and dst_host != '127.0.0.1':
+        dst_cmd = 'ssh %s "%s"' % (dst_host, dst_cmd)
+    remote_cmd = '{ %s; } && { %s; }' % (src_cmd, dst_cmd)
+    try:
+        #print remote_cmd
+        p = execute(remote_cmd)
+        #print p
+        return p
+    except Exception, e:
+        print 'ERROR: %s' % str(e)
+    return None
+
+def process(conf):
+    type = 2
+    if 'type' in conf:
+        type = conf['type']
+    hosts = conf['hosts']
+    files = conf['files']
+    for (host, path) in hosts:
+        for file in files:
+            rsync_file(file, host, path, type)
+
+# s1,s2,s3
+def parse_host(host_str):
+    hosts = host_str.split(',')
+    return hosts
+def load_hosts(host_file):
+    hosts = []
+    for line in file(host_file):
+        line = line.strip()
+        if line.startswith('#'):
+            continue
+        if len(line) <= 0:
+            continue
+        host = line
+        hosts.append(host)
+    return hosts
+
+def Usage():
+    usage = ''' Usage:
+        # 将path_name文件or文件夹同步到 host1,[host2...]机器上的remote_path目录下
+        rsync-tool-single -f path_name -s host1[,host2...] -d remote_path   
+
+        # 将path_name文件or文件夹同步到 host_file中机器上的remote_path目录下
+        rsync-tool-single -f path_name -c host_file -d remote_path 
+    '''
+    print usage
+        
+if __name__ == '__main__':
+#    if len(sys.argv) != 2:
+#        print 'Usage: %s <conf>'  % (sys.argv[0])
+#        print conf_usage
+#        sys.exit(-1)
+#
+    # Usage:
+    #  -s host1,host2,... -f file_name|path
+    #  --hosts host_file -f file_name|path
+    try:
+        host_str = None
+        host_file = None
+        remote_path = None
+        rsync_file_name = None
+        user = getpass.getuser()
+        passwd = None
+        type = 2
+        
+        opts, args = getopt.getopt(sys.argv[1:], 'hs:c:u:pf:t:d:', ['help', 'server=', 'host_file=', 'user=', 'passwd', 'file=', 'type=', 'dir='])
+
+        for o, a in opts:
+            if o in ('-h', '--help'):
+                Usage()
+                sys.exit(0)
+            elif o in ('-s', '--server'):
+                host_str = a
+            elif o in ('-c', '--host_file'):
+                host_file = a
+            elif o in ('-f', '--file'):
+                rsync_file_name = a
+            elif o in ('-d', '--dir'):
+                remote_path = a
+            elif o in ('-t', '--type'):
+                type = int(a)
+            elif o in ('-u', '--user'):
+                user = a
+            elif o in ('-p', '--passwd'):
+                passwd = getpass.getpass('password: ')
+        if host_str and remote_path and rsync_file_name:
+            print rsync_file_name, host_str, remote_path, 
+            hosts = parse_host(host_str)
+            for host in hosts:
+                rsync_file(rsync_file_name, host, remote_path, type)
+        if host_file and remote_path and rsync_file_name:
+            hosts = load_hosts(host_file)
+            print rsync_file_name, host_file, remote_path
+            for host in hosts:
+                rsync_file(rsync_file_name, host, remote_path, type)
+    except getopt.GetoptError, e:
+        print 'Exception:', str(e)
+        Usage()
+        sys.exit(2)
+    sys.exit(0)
+
