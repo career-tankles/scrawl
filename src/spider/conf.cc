@@ -38,6 +38,7 @@ DEFINE_int32(STORE_rslt_queue_size, 5000, "");
 DEFINE_int32(STORE_usleep, 100, "");
 DEFINE_int32(STORE_nores_usleep, 200, "");
 DEFINE_int32(STORE_file_max_num, 1000, "");
+DEFINE_int32(STORE_file_swith_time_sec, 3600, "");
 DEFINE_uint64(STORE_file_max_size, 0x100000000, "");
 DEFINE_string(STORE_file_dir, "/tmp/spider/data", "must exist");
 DEFINE_string(STORE_format, "JSON", "");
@@ -77,6 +78,7 @@ void output_config() {
     LOG(INFO)<<"STORE_nores_usleep="<<FLAGS_STORE_nores_usleep;
     LOG(INFO)<<"STORE_file_max_num="<<FLAGS_STORE_file_max_num;
     LOG(INFO)<<"STORE_file_max_size="<<FLAGS_STORE_file_max_size;
+    LOG(INFO)<<"STORE_file_swith_time_sec="<<FLAGS_STORE_file_swith_time_sec;
     LOG(INFO)<<"STORE_file_dir="<<FLAGS_STORE_file_dir;
     LOG(INFO)<<"STORE_format="<<FLAGS_STORE_format;
 

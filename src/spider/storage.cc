@@ -116,15 +116,17 @@ private:
             int res = fstat(fd_, &stat_buf);
             if(res == -1)
                 exit(1);
-            if(stat_buf.st_size >= FLAGS_STORE_file_max_size) {
+            time_t now = time(NULL);
+            if(stat_buf.st_size >= FLAGS_STORE_file_max_size || (stat_buf.st_size > 0 && last_switch_file_time_sec_+FLAGS_STORE_file_swith_time_sec <= now)) {
                 // 切换新文件
                 close(fd_);
                 int new_fno = new_fileno();
                 char buf[256] = {0};
                 sprintf(buf, "%s-%03d", data_prefix_.c_str(), new_fno);
-                LOG(INFO)<<"STORAGE new file "<<stat_buf.st_size<<">"<<FLAGS_STORE_file_max_size<<" "<<buf;
+                LOG(INFO)<<"STORAGE new file "<<stat_buf.st_size<<" "<<FLAGS_STORE_file_max_size<<" "<<last_switch_file_time_sec_<<" "<<buf;
                 cur_file_ = buf;
                 fd_ = open(buf);
+                last_switch_file_time_sec_ = now;
                 return 1;
             }
         }
@@ -158,6 +160,7 @@ private:
 
     int file_no_;               // 文件编号
     //pthread_mutex_t mutex_;
+    time_t last_switch_file_time_sec_;
 
 };
 
