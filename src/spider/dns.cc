@@ -95,6 +95,7 @@ void DNS::start() {
 }
 
 void DNS::stop() {
+    if(!is_running_) return;
     is_running_ = false;
     threadpool_.wait_all();
     LOG(INFO)<<"DNS stop "<<FLAGS_DNS_threads<<" dns threads";

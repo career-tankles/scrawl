@@ -88,8 +88,8 @@ public:
             struct timeval tv = my_timeval(FLAGS_DOWN_write_timeout_ms/1000, (FLAGS_DOWN_write_timeout_ms%1000)*1000);
             my_add_event_timeout(clock_args->base, &c->fd_event, c->sock_fd_, EV_WRITE|EV_PERSIST|EV_TIMEOUT, _download_page_, tv, (void*)c);
         }
-
-        evtimer_add(&clock_args->timer_ev, &clock_args->tv);
+        if(downloader->is_running_)
+            evtimer_add(&clock_args->timer_ev, &clock_args->tv);
     }
 
     // 下载网页
@@ -252,7 +252,10 @@ void Downloader::start()
 
 void Downloader::stop()
 {
+    if(!is_running_) return;
+
     is_running_ = false;
+    LOG(INFO)<<"DOWNLOAD waiting sub-threads to stop ...";
     threadpool_.wait_all();
     LOG(INFO)<<"DOWNLOAD stop "<<FLAGS_DOWN_threads<<" download threads";
 }

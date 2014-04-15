@@ -91,7 +91,8 @@ public:
             }
         }
 
-        evtimer_add(&clock_args->timer_ev, &clock_args->tv);
+        if(waiter->is_running_)
+            evtimer_add(&clock_args->timer_ev, &clock_args->tv);
     }
 
     static void _ready_rqst_handler_(const int fd, const short which, void *args) 
@@ -130,7 +131,9 @@ void TimeWait::start()
 
 void TimeWait::stop()
 {
+    if(!is_running_) return;
     is_running_ = false;
+    LOG(INFO)<<"TIMEWAIT waiting sub-threads to stop ...";
     threadpool_.wait_all();
     LOG(INFO)<<"TIMEWAIT stop "<<FLAGS_WAITER_threads<<" threads";
 }

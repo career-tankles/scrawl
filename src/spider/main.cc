@@ -15,6 +15,8 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
+#include <signal.h>
+
 #include "conf.h"
 #include "threadpool.h"
 #include "SpiderWebService.h"
@@ -79,6 +81,20 @@ struct _spider_thread_ {
     }
 };
 
+
+boost::shared_ptr<SpiderResManager> g_spider;
+TThreadPoolServer* g_server = NULL;
+
+static void sig_handler(const int sig) {
+    LOG(INFO)<<"SIGINT or SIGTERM is catched.\nsystem is stoping\n";
+    if(g_server) {
+        g_server->stop();
+    }
+    if(g_spider) {
+        g_spider->stop();
+    }
+}
+
 int main(int argc, char **argv) {
     google::ParseCommandLineFlags(&argc, &argv, true);
     // Initialize Google's logging library.
@@ -86,8 +102,13 @@ int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
 
     output_config();
+    
+    signal(SIGINT, sig_handler);   
+    signal(SIGTERM, sig_handler);   
 
     boost::shared_ptr<SpiderResManager> spider(new SpiderResManager);
+    g_spider = spider;
+
     threadpool threadpool;
     threadpool.create_thread(_spider_thread_(), (void*)&spider);
 
@@ -102,16 +123,16 @@ int main(int argc, char **argv) {
     //TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
     int workerCount = FLAGS_SERVER_thrift_threadnum;
     shared_ptr<ThreadManager> threadManager =
-      ThreadManager::newSimpleThreadManager(workerCount);
+        ThreadManager::newSimpleThreadManager(workerCount);
     shared_ptr<PosixThreadFactory> threadFactory =
-      shared_ptr<PosixThreadFactory>(new PosixThreadFactory());
+        shared_ptr<PosixThreadFactory>(new PosixThreadFactory());
     threadManager->threadFactory(threadFactory);
     threadManager->start();
     TThreadPoolServer server(processor,
                              serverTransport,
                              transportFactory,
-                           protocolFactory,
-                           threadManager);
+                             protocolFactory,
+                             threadManager);
   /*
     TThreadedServer server(processor,
                          serverTransport,
@@ -119,23 +140,15 @@ int main(int argc, char **argv) {
                          protocolFactory);
 
   */
-
   
+    g_server = &server;
     printf("Starting the server...\n");
     server.serve();
+
+    threadpool.wait_all();
+
     printf("done.\n");
 
     return 0;
 }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  

@@ -12,6 +12,7 @@ DECLARE_int32(SERVER_thrift_threadnum);
 DECLARE_int32(RES_url_list_queue_size); 
 DECLARE_int32(RES_usleep);
 DECLARE_int32(RES_add_res_each_loop);
+DECLARE_string(RES_dump_file);
 
 DECLARE_int32(DNS_threads);
 DECLARE_int32(DNS_rqst_queue_size);

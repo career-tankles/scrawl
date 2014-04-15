@@ -4,7 +4,7 @@
 --RES_url_list_queue_size=10000
 --RES_usleep=100
 
---DNS_threads=5
+--DNS_threads=1
 --DNS_rqst_queue_size=2000
 --DNS_rslt_queue_size=3000
 --DNS_usleep=100

@@ -144,6 +144,7 @@ public:
     Website();
 
     int addRes(Res* res);   // 添加一个待抓取资源
+    int popRes(Res*& res) { return res_list_.pop(res); }
 
     void addHeader(std::string& key, std::string& value);
 
