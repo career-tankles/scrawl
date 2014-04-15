@@ -11,3 +11,11 @@ LIBS =  -L/usr/local/boost-1.50.0/lib -lboost_thread  \
 
 SUBDIRS = common src scripts test
 
+dist_data_DATA = conf/spider.gflags conf/tpls.conf conf/tpl.m.baidu.com.conf
+
+install-exec-hook:
+	cd $(prefix) && rm -rf conf && $(LN_S) share conf; 
+
+uninstall-hook:
+	cd $(prefix) && rm -rf conf
+

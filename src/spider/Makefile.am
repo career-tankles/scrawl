@@ -40,7 +40,7 @@ service_spider_LDADD   = libSpiderResManager.a \
 
 SPIDER_SYMBOL_FILES = spider
 install-exec-hook:
-	cd $(sbindir) && \
+	cd $(bindir) && \
     for i in $(SPIDER_SYMBOL_FILES); \
     do \
         rm -f $$i && \
@@ -48,7 +48,7 @@ install-exec-hook:
     done
 
 uninstall-hook:
-	cd $(sbindir) && \
+	cd $(bindir) && \
     for i in $(SPIDER_SYMBOL_FILES); \
     do \
         rm -f $$i; \

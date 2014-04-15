@@ -30,7 +30,7 @@
 --STORE_nores_usleep=200
 --STORE_file_max_num=1000
 --STORE_file_max_size=0x100000000
---STORE_file_dir=data/html
+--STORE_file_dir=data/spider
 
 --WAITER_threads=1
 --WAITER_rqst_queue_size=2000
