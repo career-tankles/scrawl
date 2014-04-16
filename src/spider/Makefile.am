@@ -4,11 +4,11 @@ CXXFLAGS = -g
 
 top_dir = ../..
 AM_CPPFLAGS = -g \
-                -I/usr/local/boost-1.50.0/include -I${top_dir}/libs/boost-1.50.0/include \
-                -I/usr/local/glog-0.3.3/include -I${top_dir}/libs/glog-0.3.3/include \
-                -I/usr/local/gflags-1.2/include -I${top_dir}/libs/gflags-1.2/include \
-                -I/usr/local/thrift-0.9.1/include -I${top_dir}/libs/thrift-0.9.1/include \
-                -I/usr/local/libevent/include -I${top_dir}/libs/libevent/include -I${top_dir}/libs/libevent-1.4.10/include \
+                -I${top_dir}/libs/boost-1.50.0/include -I/usr/local/boost-1.50.0/include \
+                -I${top_dir}/libs/glog-0.3.3/include -I/usr/local/glog-0.3.3/include \
+                -I${top_dir}/libs/gflags-1.2/include -I/usr/local/gflags-1.2/include \
+                -I${top_dir}/libs/thrift-0.9.1/include -I/usr/local/thrift-0.9.1/include \
+                -I${top_dir}/libs/libevent/include -I${top_dir}/libs/libevent-1.4.10/include -I/usr/local/libevent/include \
                 -I${top_dir}/include \
                 -I${top_dir}/common \
                 -I${top_dir}/common/utils \
@@ -19,11 +19,11 @@ AM_CPPFLAGS = -g \
                 -I${top_dir}/src/thrift/gen-cpp
 
 LIBS =  -L. \
-        -L/usr/local/boost-1.50.0/lib -L${top_dir}/libs/boost-1.50.0/lib -lboost_thread -lboost_system \
-        -L/usr/local/glog-0.3.3/lib -L${top_dir}/libs/glog-0.3.3/lib -lglog     \
-        -L/usr/local/gflags-1.2/lib -L${top_dir}/libs/gflags-1.2/lib -lgflags   \
-        -L/usr/local/thrift-0.9.1/lib -L${top_dir}/libs/thrift-0.9.1/lib -lthrift \
-        -L/usr/local/libevent/lib -L${top_dir}/libs/libevent/lib -L${top_dir}/libs/libevent-1.4.10/lib -levent 
+        -L${top_dir}/libs/boost-1.50.0/lib -L/usr/local/boost-1.50.0/lib  -lboost_thread -lboost_system \
+        -L${top_dir}/libs/glog-0.3.3/lib -L/usr/local/glog-0.3.3/lib -lglog       \
+        -L${top_dir}/libs/gflags-1.2/lib -L/usr/local/gflags-1.2/lib -lgflags     \
+        -L${top_dir}/libs/thrift-0.9.1/lib -L/usr/local/thrift-0.9.1/lib -lthrift \
+        -L${top_dir}/libs/libevent/lib -L${top_dir}/libs/libevent-1.4.10/lib -L/usr/local/libevent/lib -levent 
         
 
 noinst_LIBRARIES = libSpiderResManager.a

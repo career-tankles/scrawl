@@ -1,12 +1,12 @@
 
 top_dir = ../..
 
-AM_CPPFLAGS =   -I/usr/local/thrift-0.9.1/include \
-                -I/usr/local/boost-1.50.0/include -I${top_dir}/libs/boost-1.50.0/include \
+AM_CPPFLAGS =   -I${top_dir}/libs/thrift-0.9.1/include -I/usr/local/thrift-0.9.1/include \
+                -I${top_dir}/libs/boost-1.50.0/include -I/usr/local/boost-1.50.0/include \
                 -I./gen-cpp
 
-LIBS =  -L/usr/local/thrift-0.9.1/lib -lthrift \
-        -L/usr/local/boost-1.50.0/lib -L${top_dir}/libs/boost-1.50.0/lib -lboost_thread -lboost_system
+LIBS =  -L${top_dir}/libs/thrift-0.9.1/lib -L/usr/local/thrift-0.9.1/lib -lthrift \
+        -L${top_dir}/libs/boost-1.50.0/lib -L/usr/local/boost-1.50.0/lib -lboost_thread -lboost_system
 
 THRIFT = /usr/local/thrift-0.9.1/bin/thrift
 gen-cpp/spider_constants.cpp:
