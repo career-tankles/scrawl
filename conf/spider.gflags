@@ -2,6 +2,7 @@
 --SERVER_thrift_port=9090
 
 --RES_url_list_queue_size=100000
+--RES_dump_file=spider.dump.data
 --RES_usleep=100
 
 --DNS_threads=1
@@ -17,8 +18,8 @@
 --DOWN_rqst_queue_size=2000
 --DOWN_rslt_queue_size=3000
 --DOWN_http_page_maxsize=0
---DOWN_clock_interval_sec=10
---DOWN_clock_interval_us=0
+--DOWN_clock_interval_sec=0
+--DOWN_clock_interval_us=1000
 --DOWN_read_timeout_ms=10000
 --DOWN_write_timeout_ms=1000
 --DOWN_defalut_fetch_interval_sec=2

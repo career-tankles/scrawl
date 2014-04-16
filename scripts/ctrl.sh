@@ -19,6 +19,7 @@ QUERY_CLIENT_BIN="$WORKDIR/bin/query_client "
 SEARCH_LIST_CLIENT_BIN="$WORKDIR/bin/search_list_client "
 
 KILL='killall '
+KILL_FORCE='killall -9 '
 
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WORKDIR/libs/thrift-0.9.1/lib:$WORKDIR/libs/boost-1.50.0/lib:$WORKDIR/libs/gflags-1.2/lib:$WORKDIR/libs/glog-0.3.3/lib:$WORKDIR/libs/libevent-1.4.10/lib:$WORKDIR/libs/libcrypto:$WORKDIR/libs/libssl
@@ -49,7 +50,7 @@ function _procnum() {
 
 
 #/********************************************************/
-function _dokillproc() {
+function _dostopproc() {
     local proc="$1"
     local kill_times=0
     local proc_num=$(_procnum "$proc" "$BIN_DIR")
@@ -75,6 +76,34 @@ function _dokillproc() {
 }
 #/********************************************************/
 
+
+#/********************************************************/
+function _dokillproc() {
+    local proc="$1"
+    local kill_times=0
+    local proc_num=$(_procnum "$proc" "$BIN_DIR")
+    if [ $proc_num -eq 0 ];then
+        echo "$proc maybe not running"
+        return 0
+    fi
+    while [ $proc_num -ne 0 -a $kill_times -le 10 ];do
+        $KILL_FORCE $BIN_DIR/$proc >/dev/null 2>&1
+        sleep 1
+        #proc_num=$(pgrep -U $RUNUSER -x $proc|wc -l)
+        proc_num=$(_procnum "$proc" "$BIN_DIR")
+        kill_times=$(($kill_times+1))
+    done
+        #proc_num=$(pgrep -U $RUNUSER -x $proc|wc -l)
+    if [ $proc_num -ne 0 ];then
+        echo "$proc stop failed..."
+        return 1
+    else
+        echo "$proc stoped!"
+        return 0
+    fi
+}
+#/********************************************************/
+
 function _start_spider_()
 {
     msg="start $SPIDER_BIN $SPIDER_ARGS"
@@ -84,6 +113,17 @@ function _start_spider_()
 }
 
 function _stop_spider_()
+{
+    echo "stoping $PROC ..."
+    _dostopproc $PROC
+    if [ $? -ne 0 ];then
+        _log "$WORKDIR/log/start.log" "stop failed!"
+    else
+        _log "$WORKDIR/log/start.log" "stop success!"
+    fi
+}
+
+function _kill_spider_()
 {
     echo "stoping $PROC ..."
     _dokillproc $PROC
@@ -181,6 +221,10 @@ fi
 
 if [ "$CMDNAME" = 'stop_spider.sh' ];then
     _stop_spider_ 
+fi
+
+if [ "$CMDNAME" = 'kill_spider.sh' ];then
+    _kill_spider_ 
 fi
 
 if [ "$CMDNAME" = 'restart_spider.sh' ];then
