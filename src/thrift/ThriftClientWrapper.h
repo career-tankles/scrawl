@@ -35,8 +35,8 @@ public:
     int connect();
     //boost::shared_ptr<SpiderWebServiceClient> client();
     int close() ;
-    int send(std::string& url);
-    int send(std::string& url, std::string& userdata);
+    int send(const std::string& url);
+    int send(const std::string& url, const std::string& userdata);
 
     std::string ip() { return ip_; }
     unsigned short port() { return port_; }

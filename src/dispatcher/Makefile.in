@@ -34,7 +34,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = dispatcher$(EXEEXT)
+bin_PROGRAMS = multi_client$(EXEEXT) dispatcher$(EXEEXT)
 subdir = src/dispatcher
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -47,9 +47,13 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_dispatcher_OBJECTS = dispatcher.$(OBJEXT)
+am_dispatcher_OBJECTS = main.$(OBJEXT)
 dispatcher_OBJECTS = $(am_dispatcher_OBJECTS)
 dispatcher_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
+	${top_dir}/src/thrift/libspider_webservice.a
+am_multi_client_OBJECTS = dispatcher.$(OBJEXT)
+multi_client_OBJECTS = $(am_multi_client_OBJECTS)
+multi_client_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
 	${top_dir}/src/thrift/libspider_webservice.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -59,8 +63,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(dispatcher_SOURCES)
-DIST_SOURCES = $(dispatcher_SOURCES)
+SOURCES = $(dispatcher_SOURCES) $(multi_client_SOURCES)
+DIST_SOURCES = $(dispatcher_SOURCES) $(multi_client_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -157,7 +161,11 @@ AM_CPPFLAGS = -g -I. \
                 -I${top_dir}/common/cJSON   \
                 -I${top_dir}/common/utils 
 
-dispatcher_SOURCES = dispatcher.cpp 
+multi_client_SOURCES = dispatcher.cpp 
+multi_client_LDADD = ${top_dir}/common/md5/libmd5.a \
+                     ${top_dir}/src/thrift/libspider_webservice.a
+
+dispatcher_SOURCES = main.cpp 
 dispatcher_LDADD = ${top_dir}/common/md5/libmd5.a \
                      ${top_dir}/src/thrift/libspider_webservice.a
 
@@ -220,6 +228,9 @@ clean-binPROGRAMS:
 dispatcher$(EXEEXT): $(dispatcher_OBJECTS) $(dispatcher_DEPENDENCIES) 
 	@rm -f dispatcher$(EXEEXT)
 	$(CXXLINK) $(dispatcher_LDFLAGS) $(dispatcher_OBJECTS) $(dispatcher_LDADD) $(LIBS)
+multi_client$(EXEEXT): $(multi_client_OBJECTS) $(multi_client_DEPENDENCIES) 
+	@rm -f multi_client$(EXEEXT)
+	$(CXXLINK) $(multi_client_LDFLAGS) $(multi_client_OBJECTS) $(multi_client_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -228,6 +239,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dispatcher.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

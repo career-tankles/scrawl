@@ -33,6 +33,7 @@
 #include <gflags/gflags.h>
 
 #include "md5.h"
+#include "utils.h"
 #include "ThriftClientWrapper.h"
 
 using namespace std;
@@ -40,7 +41,10 @@ using namespace boost;
 
 void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper> clients) {
     int fd = open(file.c_str(), O_RDONLY);
-    if(fd == -1) return ;
+    if(fd == -1) {
+        LOG(ERROR)<<"DISPATCHER open "<<file<<" failed, "<<errno<<" "<<strerror(errno);
+        return ;
+    }
     char buf[1024*1024];
     ssize_t n = 0;
     ssize_t left = 0;
@@ -70,10 +74,6 @@ void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper> clients
                     std::string userdata = "0 " + std::string((char*)md5_val, 32) ;
                     std::cout<<query<<" userdata:"<<userdata<<std::endl;
     
-                    //HttpRequest rqst;
-                    //rqst.__set_url(url);
-                    //rqst.__set_userdata(userdata);
-                    //client->submit(rqst);
                     LOG(INFO)<<" send_num="<<send_num;
                     int ret = client->send(url, userdata);
                     if( ret != 0){
@@ -93,7 +93,6 @@ void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper> clients
                     }
                 } 
                 else{
-                    //client->submit_url(line);
                     client->send(query);
                 }
 
@@ -112,8 +111,32 @@ void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper> clients
     }
 }
 
-DEFINE_string(CLIENT_server_addr, "localhost", "");
-DEFINE_int32(CLIENT_server_port, 9090, "");
+struct server_t
+{
+    std::string ip;
+    unsigned short port;
+};
+
+int load_servers(std::string& addr_list, std::vector<server_t>& servers)
+{
+    std::vector<std::string> v;
+    splitByChar(addr_list.c_str(), v, ';');
+    for(int i=0; i<v.size(); i++) {
+        std::string str = v[i];
+        std::vector<std::string> v2;
+        splitByChar(str.c_str(), v2, ':');
+        assert(v2.size() == 2);
+
+        server_t s;
+        s.ip = v2[0];
+        s.port = atoi(v2[1].c_str());
+        assert(!s.ip.empty() && s.port>1000);
+        servers.push_back(s);
+    }
+    return servers.size();
+}
+
+DEFINE_string(CLIENT_server_addr, "localhost:9090", "");
 DEFINE_string(CLIENT_query_file, "query.txt", "");
 
 int main(int argc, char** argv) {
@@ -122,16 +145,22 @@ int main(int argc, char** argv) {
     FLAGS_logtostderr = 1;  // 默认打印错误输出
     google::InitGoogleLogging(argv[0]);
 
-    int ret = 0 ;
+
+    std::vector<server_t> servers;   
+    int ret = load_servers(FLAGS_CLIENT_server_addr, servers);
+    assert(ret > 0 && "load_servers failed");
 
     boost::shared_ptr<ThriftClientWrapper> clients(new ThriftClientWrapper);
-    ret = clients->connect("10.16.29.38", 9090);
-    ret = clients->connect("10.16.29.89", 9090);
-
-    //ThriftClientWrapper client_wrapper;
-    //int ret = client_wrapper.connect(FLAGS_CLIENT_server_addr.c_str(), FLAGS_CLIENT_server_port);
-    //LOG(INFO)<<"connect ret="<<ret;
-    //load_query(FLAGS_CLIENT_query_file, client_wrapper.client());
+    for(int i=0; i<servers.size(); i++) {
+        server_t& server = servers[i];
+        ret = clients->connect(server.ip.c_str(), server.port);
+        if(ret != 0) {
+            LOG(INFO)<<"DISPATCHER connect to "<<server.ip<<":"<<server.port<<" failed!";
+            continue;
+        }
+        LOG(INFO)<<"DISPATCHER connect to "<<server.ip<<":"<<server.port;
+        
+    }
     load_query(FLAGS_CLIENT_query_file, clients);
 
     LOG(INFO)<<"finish!";

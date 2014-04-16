@@ -16,10 +16,17 @@ LIBS =  -L. \
         -L${top_dir}/libs/glog-0.3.3/lib -L/usr/local/glog-0.3.3/lib -lglog \
         -L${top_dir}/libs/gflags-1.2/lib -L/usr/local/gflags-1.2/lib  -lgflags
 
-bin_PROGRAMS = dispatcher
-dispatcher_SOURCES = dispatcher.cpp 
+bin_PROGRAMS = multi_client 
+multi_client_SOURCES = dispatcher.cpp 
+multi_client_LDADD   = ${top_dir}/common/md5/libmd5.a \
+                     ${top_dir}/src/thrift/libspider_webservice.a
+
+bin_PROGRAMS += dispatcher
+dispatcher_SOURCES = main.cpp 
 dispatcher_LDADD   = ${top_dir}/common/md5/libmd5.a \
                      ${top_dir}/src/thrift/libspider_webservice.a
+
+
 
 
 

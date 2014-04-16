@@ -2,14 +2,12 @@
 
 ulimit -c unlimited
 
-
 SYSTEM=$(uname -s)
 RUNUSER=$(id -un)
 CPUNUM=$(cat /proc/cpuinfo|grep processor|wc -l)
 
 SCRIPT_PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export WORKDIR=`dirname $SCRIPT_PWD`
-
 if [ -z "$WORKDIR" ]; then
     echo "WORKDIR is empty, set first!!"
     exit 1

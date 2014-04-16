@@ -14,14 +14,14 @@
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
+#include <boost/shared_ptr.hpp>
 
+#include <string>
+#include <vector>
 #include <signal.h>
 
-#include "conf.h"
-#include "threadpool.h"
-#include "SpiderWebService.h"
-#include "SpiderResManager.h"
-#include "message.h"
+#include "utils.h"
+#include "ThriftClientWrapper.h"
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -31,19 +31,45 @@ using namespace ::apache::thrift::concurrency;
 
 using boost::shared_ptr;
 
-using namespace ::spider::webservice;
-using namespace ::spider::message;
-using namespace ::spider::scheduler;
+struct server_t
+{
+    std::string ip;
+    unsigned short port;
+};
+
+int load_servers(std::string& addr_list, std::vector<server_t>& servers)
+{
+    std::vector<std::string> v;
+    splitByChar(addr_list.c_str(), v, ';');
+    for(int i=0; i<v.size(); i++) {
+        std::string str = v[i];
+        std::vector<std::string> v2;
+        splitByChar(str.c_str(), v2, ':');
+        assert(v2.size() == 2);
+
+        server_t s;
+        s.ip = v2[0];
+        s.port = atoi(v2[1].c_str());
+        assert(!s.ip.empty() && s.port>1000);
+        servers.push_back(s);
+    }
+    return servers.size();
+}
+
 
 class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
  public:
   SpiderWebServiceHandler() {
     // Your initialization goes here
+    send_num_ = 0;
+    switch_client_num_ = 0;
   }
-  SpiderWebServiceHandler(boost::shared_ptr<SpiderResManager> spider) 
-    : spider_(spider)
+  SpiderWebServiceHandler(boost::shared_ptr<ThriftClientWrapper>& clients) 
+    : clients_(clients)
   {
     // Your initialization goes here
+    send_num_ = 0;
+    switch_client_num_ = 0;
   }
 
 
@@ -53,69 +79,66 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
   }
 
   int32_t submit(const HttpRequest& rqst) {
-    Res* res = new Res();
-    res->url = rqst.url;
-    res->userdata = rqst.userdata;
-    return spider_->submit(res);
-  }
+    if(!client_ || send_num_++ >= switch_client_num_){
+         client_ = clients_->client();
+         if(!client_) {
+             LOG(ERROR)<<"DISPATCHER no client exist";
+             return -1;
+         }
+         send_num_ = 0;
+     }
 
+     int ret = client_->send(rqst.url, rqst.userdata);
+     if( ret != 0){
+         client_ = clients_->client();
+         if(!client_) {
+             LOG(ERROR)<<"DISPATCHER no client exist";
+             return -1 ;
+         }
+     }
+      
+     return 0;
+  }  
+     
   int32_t submit_url(const std::string& url) {
-    Res* res = new Res();
-    res->url = url;
-    res->userdata = "";
-    return spider_->submit(res);
+    if(!client_ || send_num_++ >= switch_client_num_){
+         client_ = clients_->client();
+         if(!client_) {
+             LOG(ERROR)<<"DISPATCHER no client exist";
+             return -1;
+         }
+         send_num_ = 0;
+     }
 
-  }
+     int ret = client_->send(url);
+     if( ret != 0){
+         client_ = clients_->client();
+         if(!client_) {
+             LOG(ERROR)<<"DISPATCHER no client exist";
+             return -1 ;
+         }
+     }
+  }  
 
 private:
-    boost::shared_ptr<SpiderResManager> spider_;
+    boost::shared_ptr<ThriftClientWrapper> clients_;
+    boost::shared_ptr<ThriftClientInstance> client_;
+
+    int send_num_;
+    int switch_client_num_;
 
 };
 
-struct _spider_thread_ {
-    void operator()(void* args) {
-        boost::shared_ptr<SpiderResManager> spider = *(boost::shared_ptr<SpiderResManager>*)args;
-        spider->start();
-        spider->run_loop();
-        //spider->stop();
-    }
-};
+DEFINE_int32(SERVER_thrift_port, 9090, "");
+DEFINE_int32(SERVER_thrift_threadnum, 10, "");
+DEFINE_string(CLIENT_server_addr, "localhost:9090", "");
 
-enum SERVER_STATUS {
-    SERVER_STATUS_OK,
-    SERVER_STATUS_ERROR,
-};
-
-typedef struct server_addr_t {
-    std::string key;
-    std::string ip; 
-    unsigned short port;
-    unsigned int weight;
-    SERVER_STATUS status;
-    time_t 
-};
-
-int load_servers(std::string json_file, std::map<std::string, server_addr_t>& m)
-{
-    std::string json_data;
-    int ret = load(json_file.c_str(), json_data);
-    if(ret != 0) {
-        LOG(ERROR)<<"Load data error "<<json_file;
-        return -1;
-    }
-}
-
-
-boost::shared_ptr<SpiderResManager> g_spider;
 TThreadPoolServer* g_server = NULL;
 
 static void sig_handler(const int sig) {
     LOG(INFO)<<"SIGINT or SIGTERM is catched.\nsystem is stoping\n";
     if(g_server) {
         g_server->stop();
-    }
-    if(g_spider) {
-        g_spider->stop();
     }
 }
 
@@ -125,20 +148,27 @@ int main(int argc, char **argv) {
     FLAGS_logtostderr = 1;
     google::InitGoogleLogging(argv[0]);
 
-    output_config();
-    
     signal(SIGINT, sig_handler);   
     signal(SIGTERM, sig_handler);   
 
-    boost::shared_ptr<SpiderResManager> spider(new SpiderResManager);
-    g_spider = spider;
+    std::vector<server_t> servers;   
+    int ret = load_servers(FLAGS_CLIENT_server_addr, servers);
+    assert(ret > 0 && "load_servers failed");
 
-    threadpool threadpool;
-    threadpool.create_thread(_spider_thread_(), (void*)&spider);
+    boost::shared_ptr<ThriftClientWrapper> clients(new ThriftClientWrapper);
+    for(int i=0; i<servers.size(); i++) {
+        server_t& server = servers[i];
+        ret = clients->connect(server.ip.c_str(), server.port);
+        if(ret != 0) {
+            LOG(INFO)<<"DISPATCHER connect to "<<server.ip<<":"<<server.port<<" failed!";
+            continue;
+        }
+        LOG(INFO)<<"DISPATCHER connect to "<<server.ip<<":"<<server.port;
+    }
 
     // thrift service 
     int port = FLAGS_SERVER_thrift_port;
-    shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(spider));
+    shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(clients));
     shared_ptr<TProcessor> processor(new SpiderWebServiceProcessor(handler));
     shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
     shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
@@ -168,10 +198,7 @@ int main(int argc, char **argv) {
     g_server = &server;
     printf("Starting the server...\n");
     server.serve();
-
-    threadpool.wait_all();
-
-    printf("done.\n");
+    printf("Done.\n");
 
     return 0;
 }

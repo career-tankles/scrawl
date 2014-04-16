@@ -48,7 +48,7 @@ int ThriftClientInstance::connect(const char* ip, unsigned short port)
     return -1;
 }
 
-int ThriftClientInstance::send(std::string& url) {
+int ThriftClientInstance::send(const std::string& url) {
     try {
         fprintf(stderr, "DISPATCHER send to %s:%d %s\n", ip_.c_str(), port_, url.c_str());
         return client_->submit_url(url);
@@ -59,7 +59,7 @@ int ThriftClientInstance::send(std::string& url) {
     return -1;
 }
 
-int ThriftClientInstance::send(std::string& url, std::string& userdata) {
+int ThriftClientInstance::send(const std::string& url, const std::string& userdata) {
     try {
         HttpRequest rqst;
         rqst.__set_url(url);
