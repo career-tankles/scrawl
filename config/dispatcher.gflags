@@ -1,0 +1,5 @@
+
+
+--SERVER_thrift_port=9191
+--SERVER_thrift_threadnum=10
+"--CLIENT_server_addrs=10.16.29.38:9090;10.16.29.89:9090"

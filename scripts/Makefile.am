@@ -3,7 +3,9 @@
 
 dist_sbin_SCRIPTS = setenv.sh ctrl.sh run.sh rsync-tool-single remote_cmds rsync_spider.sh
 
-CTRL_SCRIPTS_SYMBOL_FILES = start_spider.sh stop_spider.sh kill_spider.sh restart_spider.sh info_spider.sh query_client.sh extract_data.sh search_list_client.sh 
+CTRL_SCRIPTS_SYMBOL_FILES = spider_start.sh spider_stop.sh spider_kill.sh spider_restart.sh spider_info.sh \
+                            dispatcher_start.sh dispatcher_stop.sh dispatcher_kill.sh dispatcher_restart.sh dispatcher_info.sh \
+                            query_client.sh extract_data.sh search_list_client.sh 
 
 install-exec-hook:
 	cd $(sbindir) && \

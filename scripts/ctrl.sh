@@ -17,9 +17,14 @@ echo "WORKDIR=$WORKDIR"
 #WORKDIR='/home/wangfengliang/scrawl/trunk'
 #WORKDIR='/home/wangfengliang/mse/first_engine/scrawl/trunk'
 BIN_DIR="$WORKDIR/bin"
-PROC="service_spider"
-SPIDER_BIN="$BIN_DIR/$PROC"
+
+SPIDER_PROC="service_spider"
+SPIDER_BIN="$BIN_DIR/$SPIDER_PROC"
 SPIDER_ARGS=" --flagfile=$WORKDIR/conf/spider.gflags "
+
+DISPATCHER_PROC="dispacher"
+DISPATCHER_BIN="$WORKDIR/bin/dispatcher "
+DISPATCHER_ARGS=" --flagfile=$WORKDIR/conf/dispatcher.gflags "
 
 SPIDER_BIN="$WORKDIR/bin/service_spider "
 EXTRACTOR_BIN="$WORKDIR/bin/xpath_tools "
@@ -28,7 +33,6 @@ SEARCH_LIST_CLIENT_BIN="$WORKDIR/bin/search_list_client "
 
 KILL='killall '
 KILL_FORCE='killall -9 '
-
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WORKDIR/libs/thrift-0.9.1/lib:$WORKDIR/libs/boost-1.50.0/lib:$WORKDIR/libs/gflags-1.2/lib:$WORKDIR/libs/glog-0.3.3/lib:$WORKDIR/libs/libevent-1.4.10/lib:$WORKDIR/libs/libcrypto:$WORKDIR/libs/libssl
 
@@ -112,6 +116,42 @@ function _dokillproc() {
 }
 #/********************************************************/
 
+function _start_dispatcher_()
+{
+    msg="start $DISPATCHER_BIN $DISPATCHER_ARGS"
+    echo $msg' ...'
+    $DISPATCHER_BIN $DISPATCHER_ARGS >> $WORKDIR/log/spider.log 2>&1 &
+    _log "$WORKDIR/log/start.log" "$msg"
+}
+
+function _stop_dispatcher_()
+{
+    echo "stoping $DISPATCHER_PROC ..."
+    _dostopproc $DISPATCHER_PROC
+    if [ $? -ne 0 ];then
+        _log "$WORKDIR/log/start.log" "stop failed!"
+    else
+        _log "$WORKDIR/log/start.log" "stop success!"
+    fi
+}
+
+function _kill_dispatcher_()
+{
+    echo "stoping $DISPATCHER_PROC ..."
+    _dokillproc $DISPATCHER_PROC
+    if [ $? -ne 0 ];then
+        _log "$WORKDIR/log/start.log" "stop failed!"
+    else
+        _log "$WORKDIR/log/start.log" "stop success!"
+    fi
+}
+
+function _info_dispatcher_()
+{
+    echo "$DISPATCHER_PROC process:"
+    _procinfo $DISPATCHER_PROC $BIN_DIR
+}
+
 function _start_spider_()
 {
     msg="start $SPIDER_BIN $SPIDER_ARGS"
@@ -122,8 +162,8 @@ function _start_spider_()
 
 function _stop_spider_()
 {
-    echo "stoping $PROC ..."
-    _dostopproc $PROC
+    echo "stoping $SPIDER_PROC ..."
+    _dostopproc $SPIDER_PROC
     if [ $? -ne 0 ];then
         _log "$WORKDIR/log/start.log" "stop failed!"
     else
@@ -133,8 +173,8 @@ function _stop_spider_()
 
 function _kill_spider_()
 {
-    echo "stoping $PROC ..."
-    _dokillproc $PROC
+    echo "stoping $SPIDER_PROC ..."
+    _dokillproc $SPIDER_PROC
     if [ $? -ne 0 ];then
         _log "$WORKDIR/log/start.log" "stop failed!"
     else
@@ -144,8 +184,8 @@ function _kill_spider_()
 
 function _info_spider_()
 {
-    echo "$PROC process:"
-    _procinfo $PROC $BIN_DIR
+    echo "$SPIDER_PROC process:"
+    _procinfo $SPIDER_PROC $BIN_DIR
 }
 
 
@@ -162,7 +202,6 @@ function _query_client_()
         echo "$data_file send data finished!!!"
         return 0
     fi
-
 }
 
 function _search_list_client_()
@@ -221,21 +260,21 @@ function _extract_data_()
 
 CMDNAME=`basename "$0"`
 
-if [ "$CMDNAME" = 'start_spider.sh' ];then
+if [ "$CMDNAME" = 'spider_start.sh' ];then
     _start_spider_ 
     sleep 2
     _info_spider_ 
 fi
 
-if [ "$CMDNAME" = 'stop_spider.sh' ];then
+if [ "$CMDNAME" = 'spider_stop.sh' ];then
     _stop_spider_ 
 fi
 
-if [ "$CMDNAME" = 'kill_spider.sh' ];then
+if [ "$CMDNAME" = 'spider_kill.sh' ];then
     _kill_spider_ 
 fi
 
-if [ "$CMDNAME" = 'restart_spider.sh' ];then
+if [ "$CMDNAME" = 'spider_restart.sh' ];then
     _stop_spider_ 
     sleep 2
     _start_spider_ 
@@ -243,9 +282,36 @@ if [ "$CMDNAME" = 'restart_spider.sh' ];then
     _info_spider_ 
 fi
 
-if [ "$CMDNAME" = 'info_spider.sh' ];then
+if [ "$CMDNAME" = 'spider_info.sh' ];then
     _info_spider_ 
 fi
+
+if [ "$CMDNAME" = 'dispatcher_start.sh' ];then
+    _start_dispatcher_
+    sleep 2
+    _info_dispatcher_
+fi
+
+if [ "$CMDNAME" = 'dispatcher_stop.sh' ];then
+    _stop_dispatcher_
+fi
+
+if [ "$CMDNAME" = 'dispatcher_kill.sh' ];then
+    _kill_dispatcher_
+fi
+
+if [ "$CMDNAME" = 'dispatcher_restart.sh' ];then
+    _stop_dispatcher_
+    sleep 2
+    _start_dispatcher_
+    sleep 2
+    _info_dispatcher_
+fi
+
+if [ "$CMDNAME" = 'dispatcher_info.sh' ];then
+    _info_dispatcher_
+fi
+
 
 if [ "$CMDNAME" = "query_client.sh" ];then
     if [ "$#" != "3" ]; then

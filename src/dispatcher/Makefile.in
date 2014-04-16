@@ -47,11 +47,11 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_dispatcher_OBJECTS = main.$(OBJEXT)
+am_dispatcher_OBJECTS = dispatcher.$(OBJEXT)
 dispatcher_OBJECTS = $(am_dispatcher_OBJECTS)
 dispatcher_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
 	${top_dir}/src/thrift/libspider_webservice.a
-am_multi_client_OBJECTS = dispatcher.$(OBJEXT)
+am_multi_client_OBJECTS = multi_client.$(OBJEXT)
 multi_client_OBJECTS = $(am_multi_client_OBJECTS)
 multi_client_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
 	${top_dir}/src/thrift/libspider_webservice.a
@@ -161,11 +161,11 @@ AM_CPPFLAGS = -g -I. \
                 -I${top_dir}/common/cJSON   \
                 -I${top_dir}/common/utils 
 
-multi_client_SOURCES = dispatcher.cpp 
+multi_client_SOURCES = multi_client.cpp 
 multi_client_LDADD = ${top_dir}/common/md5/libmd5.a \
                      ${top_dir}/src/thrift/libspider_webservice.a
 
-dispatcher_SOURCES = main.cpp 
+dispatcher_SOURCES = dispatcher.cpp 
 dispatcher_LDADD = ${top_dir}/common/md5/libmd5.a \
                      ${top_dir}/src/thrift/libspider_webservice.a
 
@@ -239,7 +239,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dispatcher.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multi_client.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

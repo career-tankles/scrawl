@@ -158,7 +158,10 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 SUBDIRS = common src scripts test
-dist_data_DATA = config/spider.gflags config/tpls.conf config/tpl.m.baidu.com.conf config/hosts.txt
+dist_data_DATA = config/spider.gflags config/dispatcher.gflags \
+                 config/tpls.conf config/tpl.m.baidu.com.conf \
+                 config/hosts.txt
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
