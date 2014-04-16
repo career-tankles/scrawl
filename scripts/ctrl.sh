@@ -2,12 +2,25 @@
 
 ulimit -c unlimited
 
+
 SYSTEM=$(uname -s)
 RUNUSER=$(id -un)
 CPUNUM=$(cat /proc/cpuinfo|grep processor|wc -l)
 
+if [ -x "setenv.sh" ]; then
+. setenv.sh
+fi
+
+SCRIPT_PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+WORKDIR=`dirname $SCRIPT_PWD`
+if [ -z "$WORKDIR" ]; then
+    echo "WORKDIR is empty, set first!!"
+    exit 1
+fi
+echo "WORKDIR=$WORKDIR"
+
 #WORKDIR='/home/wangfengliang/scrawl/trunk'
-WORKDIR='/home/wangfengliang/mse/first_engine/scrawl/trunk'
+#WORKDIR='/home/wangfengliang/mse/first_engine/scrawl/trunk'
 BIN_DIR="$WORKDIR/bin"
 PROC="service_spider"
 SPIDER_BIN="$BIN_DIR/$PROC"
