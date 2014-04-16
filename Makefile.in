@@ -612,6 +612,7 @@ uninstall-info: uninstall-info-recursive
 
 install-exec-hook:
 	cd $(prefix) && rm -rf conf && $(LN_S) share conf; 
+	cd $(prefix) && mkdir -p log 
 
 uninstall-hook:
 	cd $(prefix) && rm -rf conf
