@@ -27,9 +27,9 @@ search_list_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a \
                            $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                            $(top_dir)/common/http_parser/libHttpParser.a  \
                            $(top_dir)/src/thrift/libspider_webservice.a
-#bin_PROGRAMS += dispatcher
-#dispatcher_SOURCES = dispatcher.cpp 
-#dispatcher_LDADD   = ${top_dir}/common/md5/libmd5.a \
-#                     ${top_dir}/src/thrift/libspider_webservice.a
 
+bin_PROGRAMS += dispatcher
+dispatcher_SOURCES = dispatcher.cpp 
+dispatcher_LDADD   = ${top_dir}/common/md5/libmd5.a \
+                     ${top_dir}/src/thrift/libspider_webservice.a
 

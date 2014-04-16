@@ -22,8 +22,9 @@ AC_CONFIG_FILES([
     src/client/Makefile
     src/extractor/Makefile
     src/dispatcher/Makefile
-    test/Makefile
     scripts/Makefile
+    config/Makefile
+    test/Makefile
 ])
 AC_OUTPUT
 

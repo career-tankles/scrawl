@@ -34,7 +34,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = query_client$(EXEEXT) search_list_client$(EXEEXT)
+bin_PROGRAMS = query_client$(EXEEXT) search_list_client$(EXEEXT) \
+	dispatcher$(EXEEXT)
 subdir = src/client
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -47,6 +48,10 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
+am_dispatcher_OBJECTS = dispatcher.$(OBJEXT)
+dispatcher_OBJECTS = $(am_dispatcher_OBJECTS)
+dispatcher_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
+	${top_dir}/src/thrift/libspider_webservice.a
 am_query_client_OBJECTS = query_client.$(OBJEXT)
 query_client_OBJECTS = $(am_query_client_OBJECTS)
 query_client_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
@@ -65,8 +70,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(query_client_SOURCES) $(search_list_client_SOURCES)
-DIST_SOURCES = $(query_client_SOURCES) $(search_list_client_SOURCES)
+SOURCES = $(dispatcher_SOURCES) $(query_client_SOURCES) \
+	$(search_list_client_SOURCES)
+DIST_SOURCES = $(dispatcher_SOURCES) $(query_client_SOURCES) \
+	$(search_list_client_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -173,6 +180,10 @@ search_list_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a \
                            $(top_dir)/common/http_parser/libHttpParser.a  \
                            $(top_dir)/src/thrift/libspider_webservice.a
 
+dispatcher_SOURCES = dispatcher.cpp 
+dispatcher_LDADD = ${top_dir}/common/md5/libmd5.a \
+                     ${top_dir}/src/thrift/libspider_webservice.a
+
 all: all-am
 
 .SUFFIXES:
@@ -229,6 +240,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+dispatcher$(EXEEXT): $(dispatcher_OBJECTS) $(dispatcher_DEPENDENCIES) 
+	@rm -f dispatcher$(EXEEXT)
+	$(CXXLINK) $(dispatcher_LDFLAGS) $(dispatcher_OBJECTS) $(dispatcher_LDADD) $(LIBS)
 query_client$(EXEEXT): $(query_client_OBJECTS) $(query_client_DEPENDENCIES) 
 	@rm -f query_client$(EXEEXT)
 	$(CXXLINK) $(query_client_LDFLAGS) $(query_client_OBJECTS) $(query_client_LDADD) $(LIBS)
@@ -242,6 +256,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dispatcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query_client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search_list_client.Po@am__quote@
 
@@ -426,10 +441,6 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-binPROGRAMS uninstall-info-am
 
-#bin_PROGRAMS += dispatcher
-#dispatcher_SOURCES = dispatcher.cpp 
-#dispatcher_LDADD   = ${top_dir}/common/md5/libmd5.a \
-#                     ${top_dir}/src/thrift/libspider_webservice.a
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

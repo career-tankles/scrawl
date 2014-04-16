@@ -20,6 +20,9 @@
 #include "SpiderWebService.h"
 
 #include "cJSON.h"
+#include "utils.h"
+#include "thrift_server.h"
+#include "ThriftClientWrapper.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -28,7 +31,7 @@ using namespace apache::thrift::transport;
 using namespace boost;
 using namespace spider::webservice ;
 
-int parse_search_list(cJSON* jroot, std::string host, std::vector<std::string>* urls=NULL, SpiderWebServiceClient* client=NULL) {
+int parse_search_list(cJSON* jroot, std::string host, boost::shared_ptr<ThriftClientWrapper>& clients, std::vector<std::string>* urls=NULL) {
  
     cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
     assert(jurl);
@@ -39,6 +42,12 @@ int parse_search_list(cJSON* jroot, std::string host, std::vector<std::string>* 
     cJSON* juserdata = cJSON_GetObjectItem(jroot, "userdata");
     if(juserdata) {
         userdata = juserdata->valuestring;
+    }
+
+    boost::shared_ptr<ThriftClientInstance> client = clients->client();
+    if(!client) {
+        LOG(ERROR)<<"CLIENT no client exist";
+        return -1;
     }
 
     bool has_results = false;
@@ -62,23 +71,36 @@ int parse_search_list(cJSON* jroot, std::string host, std::vector<std::string>* 
         if(urls) {
             urls->push_back(href);
         }
-
-        if(client) {
-            HttpRequest rqst;
-            rqst.__set_url(href);
-            if(!userdata.empty()) {
-                std::string new_userdata(userdata);
-                new_userdata[0] = 'A' + i;
-                rqst.__set_userdata(new_userdata);
+        if(!userdata.empty()) {
+            std::string new_userdata(userdata);
+            new_userdata[0] = 'A' + i;
+ 
+            int ret = client->send(href, new_userdata);
+            while( ret != 0){
+                client = clients->client();
+                if(!client) {
+                    LOG(ERROR)<<"CLIENT no client exist";
+                    return -2 ;
+                }
+                ret = client->send(href, new_userdata);
             }
-            client->submit(rqst);
+        } else {
+            int ret = client->send(href);
+            while( ret != 0){
+                client = clients->client();
+                if(!client) {
+                    LOG(ERROR)<<"CLIENT no client exist";
+                    return -3 ;
+                }
+                ret = client->send(href);
+            }
         }
     }
 
     return has_results?0:-1;
 }
 
-int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* client=NULL) {
+int parse_search_list_json(std::string input_json_file, boost::shared_ptr<ThriftClientWrapper>& clients) {
     int fd = open(input_json_file.c_str(), O_RDONLY);
     if(fd == -1) {
         fprintf(stderr, "Error: %s %d-%s\n", input_json_file.c_str(), errno, strerror(errno));
@@ -117,8 +139,8 @@ int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* 
             records++;
 
             std::vector<std::string> urls;
-            int ret = parse_search_list(jroot, host, &urls, client);
-            //int ret = parse_search_list(jroot, host, NULL, client);
+            int ret = parse_search_list(jroot, host, clients, &urls);
+            //int ret = parse_search_list(jroot, host, NULL, clients);
             if(ret == 0) {
                 //print(urls);
             } else {
@@ -141,8 +163,7 @@ int parse_search_list_json(std::string input_json_file, SpiderWebServiceClient* 
 
 DEFINE_string(CLIENT_input_format, "JSON", "");
 DEFINE_string(CLIENT_input_file, "output.json", "");
-DEFINE_string(CLIENT_server_addr, "localhost", "");
-DEFINE_int32(CLIENT_server_port, 9090, "");
+DEFINE_string(CLIENT_server_addrs, "localhost:9090", "");
 
 int main(int argc, char** argv)
 {
@@ -151,24 +172,35 @@ int main(int argc, char** argv)
     FLAGS_logtostderr = 1;  // 默认打印错误输出
     google::InitGoogleLogging(argv[0]);
 
-    shared_ptr<TTransport> socket(new TSocket(FLAGS_CLIENT_server_addr.c_str(), FLAGS_CLIENT_server_port));
-    shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-    shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
-    SpiderWebServiceClient client(protocol);
+    std::vector<server_t> servers;   
+    int ret = load_servers(FLAGS_CLIENT_server_addrs, servers);
+    assert(ret > 0 && "load_servers failed");
 
-    try {
-        transport->open();
-
-        // 解析数据
-        if(FLAGS_CLIENT_input_format == "JSON") {
-            parse_search_list_json(FLAGS_CLIENT_input_file, &client);
-        } else {
-            LOG(INFO)<<"Unknown input_format, currently only JSON support";
+    int alive = 0;
+    boost::shared_ptr<ThriftClientWrapper> clients(new ThriftClientWrapper);
+    for(int i=0; i<servers.size(); i++) {
+        server_t& server = servers[i];
+        ret = clients->connect(server.ip.c_str(), server.port);
+        if(ret != 0) {
+            LOG(INFO)<<"CLIENT connect to "<<server.ip<<":"<<server.port<<" failed!";
+            continue;
         }
-    
-    } catch (TException &tx) {
-        printf("ERROR: %s\n", tx.what());
+        alive ++;
+        LOG(INFO)<<"CLIENT connect to "<<server.ip<<":"<<server.port;
     }
+    if(alive <= 0) {
+        LOG(INFO)<<"CLIENT no alive server: "<<FLAGS_CLIENT_server_addrs;
+        return -1;
+    }
+
+    // 解析数据
+    if(FLAGS_CLIENT_input_format == "JSON") {
+        parse_search_list_json(FLAGS_CLIENT_input_file, clients);
+    } else {
+        LOG(INFO)<<"Unknown input_format, currently only JSON support";
+    }
+    
+    LOG(INFO)<<"finish!";
 
     return 0;
 }

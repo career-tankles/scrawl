@@ -27,68 +27,36 @@
 
 #include <iostream>
 
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/transport/TSocket.h>
-#include <thrift/transport/TTransportUtils.h>
+#include <boost/shared_ptr.hpp>
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
-#include "SpiderWebService.h"
 #include "md5.h"
+#include "utils.h"
+#include "thrift_server.h"
+#include "ThriftClientWrapper.h"
 
 using namespace std;
-using namespace apache::thrift;
-using namespace apache::thrift::protocol;
-using namespace apache::thrift::transport;
-
 using namespace boost;
 
-using namespace spider::webservice ;
-
-
-void splitByLine(const char* s, std::vector<std::string>& v) {
-    if(!s) return ;
-
-    std::cout<<"["<<s<<"]"<<std::endl;
-    const char* start = NULL;
-    const char* p = s;
-    while(p && *p != '\0') {
-        while(p && *p != '\0' && (*p == '\r' || *p == '\n')) p++; // 第一个非空字符
-        start = p;
-        while(p && *p != '\0' && *p != '\r' && *p != '\n') p++; // 起始非空字符
-        if(start && p && *p != '\0' ) {
-            v.push_back(std::string(start, p-start));
-        } else if(start) {
-            v.push_back(std::string(start));
-        }   
-    }   
-}
-
-void splitByTab(const char* s, std::vector<std::string>& v) {
-    if(!s) return ;
-
-    std::cout<<"["<<s<<"]"<<std::endl;
-    const char* start = NULL;
-    const char* p = s;
-    while(p && *p != '\0') {
-        while(p && *p != '\0' && (*p == '\t' || *p == '\n')) p++; // 第一个非空字符
-        start = p;
-        while(p && *p != '\0' && *p != '\t' && *p != '\n') p++; // 起始非空字符
-        if(start && p && *p != '\0' ) {
-            v.push_back(std::string(start, p-start));
-        } else if(start) {
-            v.push_back(std::string(start));
-        }   
-    }   
-}
-
-void load_query(std::string file, SpiderWebServiceClient& client) {
+void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper>& clients) {
     int fd = open(file.c_str(), O_RDONLY);
-    if(fd == -1) return ;
+    if(fd == -1) {
+        LOG(ERROR)<<"DISPATCHER open "<<file<<" failed, "<<errno<<" "<<strerror(errno);
+        return ;
+    }
+
+    boost::shared_ptr<ThriftClientInstance> client = clients->client();
+    if(!client) {
+        LOG(ERROR)<<"DISPATCHER no client exist";
+        return ;
+    }
     char buf[1024*1024];
     ssize_t n = 0;
     ssize_t left = 0;
+    int send_num = 0;
+    const int switch_client_num = 1000;
     while((n=read(fd, buf+left, sizeof(buf)-left)) > 0)
     {
         char* p = buf;
@@ -100,21 +68,36 @@ void load_query(std::string file, SpiderWebServiceClient& client) {
                 std::string query = line;
                 if(strncmp(query.c_str(), "http://", strlen("http://")) != 0)
                 {
-                        unsigned char md5_val[33];
-                        MD5_calc(query.c_str(), query.size(), md5_val, 32);
+                    unsigned char md5_val[33];
+                    MD5_calc(query.c_str(), query.size(), md5_val, 32);
     
-                        const static std::string default_host = "http://m.baidu.com/s?word=";
-                        std::string url = default_host+query;
-                        std::string userdata = "0 " + std::string((char*)md5_val, 32) ;
-                        std::cout<<query<<" userdata:"<<userdata<<std::endl;
+                    const static std::string default_host = "http://m.baidu.com/s?word=";
+                    std::string url = default_host+query;
+                    std::string userdata = "0 " + std::string((char*)md5_val, 32) ;
+                    std::cout<<query<<" userdata:"<<userdata<<std::endl;
     
-                        HttpRequest rqst;
-                        rqst.__set_url(url);
-                        rqst.__set_userdata(userdata);
-                        client.submit(rqst);
+                    LOG(INFO)<<" send_num="<<send_num;
+                    int ret = client->send(url, userdata);
+                    while( ret != 0){
+                        client = clients->client();
+                        if(!client) {
+                            LOG(ERROR)<<"DISPATCHER no client exist";
+                            return ;
+                        }
+                        send_num = 0;
+                        ret = client->send(url, userdata);
+                    }
+                    if(send_num++ >= switch_client_num){
+                        client = clients->client();
+                        if(!client) {
+                            LOG(ERROR)<<"DISPATCHER no client exist";
+                            return ;
+                        }
+                        send_num = 0;
+                    }
                 } 
                 else{
-                    client.submit_url(line);
+                    client->send(query);
                 }
 
                 while(p<buf+left) {
@@ -132,30 +115,32 @@ void load_query(std::string file, SpiderWebServiceClient& client) {
     }
 }
 
-DEFINE_string(CLIENT_server_addr, "localhost", "");
-DEFINE_int32(CLIENT_server_port, 9090, "");
+DEFINE_string(CLIENT_server_addrs, "localhost:9090", "");
 DEFINE_string(CLIENT_query_file, "query.txt", "");
 
 int main(int argc, char** argv) {
-  google::ParseCommandLineFlags(&argc, &argv, true);
-  // Initialize Google's logging library.
-  FLAGS_logtostderr = 1;  // 默认打印错误输出
-  google::InitGoogleLogging(argv[0]);
+    google::ParseCommandLineFlags(&argc, &argv, true);
+    // Initialize Google's logging library.
+    FLAGS_logtostderr = 1;  // 默认打印错误输出
+    google::InitGoogleLogging(argv[0]);
 
-  //shared_ptr<TTransport> socket(new TSocket("10.138.70.139", 9090));
-  shared_ptr<TTransport> socket(new TSocket(FLAGS_CLIENT_server_addr.c_str(), FLAGS_CLIENT_server_port));
-  shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-  shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
-  SpiderWebServiceClient client(protocol);
+    std::vector<server_t> servers;   
+    int ret = load_servers(FLAGS_CLIENT_server_addrs, servers);
+    assert(ret > 0 && "load_servers failed");
 
-  try {
-    transport->open();
+    boost::shared_ptr<ThriftClientWrapper> clients(new ThriftClientWrapper);
+    for(int i=0; i<servers.size(); i++) {
+        server_t& server = servers[i];
+        ret = clients->connect(server.ip.c_str(), server.port);
+        if(ret != 0) {
+            LOG(INFO)<<"DISPATCHER connect to "<<server.ip<<":"<<server.port<<" failed!";
+            continue;
+        }
+        LOG(INFO)<<"DISPATCHER connect to "<<server.ip<<":"<<server.port;
+        
+    }
+    load_query(FLAGS_CLIENT_query_file, clients);
 
-    load_query(FLAGS_CLIENT_query_file, client);
-
-    transport->close();
-  } catch (TException &tx) {
-    printf("ERROR: %s\n", tx.what());
-  }
-
+    LOG(INFO)<<"finish!";
 }
+

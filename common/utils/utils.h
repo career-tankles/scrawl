@@ -4,7 +4,7 @@
 static void splitBySpace(const char* s, std::vector<std::string>& v) {
     if(!s) return ;
 
-    std::cout<<"["<<s<<"]"<<std::endl;
+    std::cout<<"[ "<<s<<" ]"<<std::endl;
     const char* start = NULL;
     const char* p = s;
     while(p && *p != '\0') {
@@ -23,7 +23,7 @@ static void splitBySpace(const char* s, std::vector<std::string>& v) {
 static void splitByTab(const char* s, std::vector<std::string>& v) {
     if(!s) return ;
 
-    std::cout<<"["<<s<<"]"<<std::endl;
+    std::cout<<"[ "<<s<<" ]"<<std::endl;
     const char* start = NULL;
     const char* p = s;
     while(p && *p != '\0') {
@@ -41,7 +41,7 @@ static void splitByTab(const char* s, std::vector<std::string>& v) {
 static void splitByChar(const char* s, std::vector<std::string>& v, char delimit=' ') {
     if(!s) return ;
 
-    std::cout<<"["<<s<<"]"<<std::endl;
+    std::cout<<"[ "<<s<<" ]"<<std::endl;
     const char* start = NULL;
     const char* p = s;
     while(p && *p != '\0') {

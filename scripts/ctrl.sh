@@ -14,22 +14,27 @@ if [ -z "$WORKDIR" ]; then
 fi
 echo "WORKDIR=$WORKDIR"
 
-#WORKDIR='/home/wangfengliang/scrawl/trunk'
-#WORKDIR='/home/wangfengliang/mse/first_engine/scrawl/trunk'
 BIN_DIR="$WORKDIR/bin"
 
 SPIDER_PROC="service_spider"
-SPIDER_BIN="$BIN_DIR/$SPIDER_PROC"
+SPIDER_BIN="$WORKDIR/bin/service_spider "
 SPIDER_ARGS=" --flagfile=$WORKDIR/conf/spider.gflags "
 
 DISPATCHER_PROC="dispacher"
 DISPATCHER_BIN="$WORKDIR/bin/dispatcher "
 DISPATCHER_ARGS=" --flagfile=$WORKDIR/conf/dispatcher.gflags "
 
-SPIDER_BIN="$WORKDIR/bin/service_spider "
-EXTRACTOR_BIN="$WORKDIR/bin/xpath_tools "
-QUERY_CLIENT_BIN="$WORKDIR/bin/query_client "
+PAGE_EXTRACTOR_PROC="page_extractor"
+PAGE_EXTRACTOR_BIN="$WORKDIR/bin/page_extractor "
+PAGE_EXTRACTOR_ARGS=" --flagfile=$WORKDIR/conf/page_extractor.gflags "
+
+SEARCH_LIST_CLIENT_PROC="search_list_client"
 SEARCH_LIST_CLIENT_BIN="$WORKDIR/bin/search_list_client "
+SEARCH_LIST_CLIENT_ARGS=" --flagfile=$WORKDIR/conf/search_list_client.gflags "
+
+QUERY_CLIENT_PROC="query_client"
+QUERY_CLIENT_BIN="$WORKDIR/bin/query_client "
+QUERY_CLIENT_ARGS=" --flagfile=$WORKDIR/conf/query_client.gflags "
 
 KILL='killall '
 KILL_FORCE='killall -9 '
@@ -191,70 +196,134 @@ function _info_spider_()
 
 function _query_client_()
 {
-    server_addr="$1"
-    server_port="$2"
-    query_file="$3"
-    $QUERY_CLIENT_BIN --CLIENT_server_addr=$server_addr --CLIENT_server_port=$server_port --CLIENT_query_file=$query_file
-    if [ "$?" != "0" ]; then
-        echo "$data_file send data error!!!"
-        return 1
-    else
-        echo "$data_file send data finished!!!"
-        return 0
+    log_file="log/query_client.log"
+    if [ "$#" == "0" ]; then
+        $QUERY_CLIENT_BIN $QUERY_CLIENT_ARGS > $log_file 2>&1
+        if [ "$?" != "0" ]; then
+            echo "query_client failed, gflags=$QUERY_CLIENT_ARGS"
+            return 1
+        else
+            echo "query_client finished, gflags=$QUERY_CLIENT_ARGS"
+            return 0
+        fi
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        $QUERY_CLIENT_BIN --flagfile=$gflags_file > $log_file 2>&1
+        if [ "$?" != "0" ]; then
+            echo "query_client failed, gflags=$gflags_file"
+            return 1
+        else
+            echo "query_client finished, gflags=$gflags_file"
+            return 0
+        fi
+    elif [ "$#" == "2" ]; then
+        server_addr="$1"
+        query_file="$2"
+        $QUERY_CLIENT_BIN --CLIENT_server_addrs=$server_addr --CLIENT_query_file=$query_file
+        if [ "$?" != "0" ]; then
+            echo "$data_file send data error!!!"
+            return 1
+        else
+            echo "$data_file send data finished!!!"
+            return 0
+        fi
     fi
 }
 
 function _search_list_client_()
 {
-    server_addr="$1"
-    server_port="$2"
-    data_format="$3"
-    data_file="$4"
-    $SEARCH_LIST_CLIENT_BIN --CLIENT_server_addr=$server_addr --CLIENT_server_port=$server_port --CLIENT_input_format=$data_format --CLIENT_input_file=$data_file
-    if [ "$?" != "0" ]; then
-        echo "$data_file send data error!!!"
-        return 1
-    else
-        echo "$data_file send data finished!!!"
-        return 0
+    log_file="log/search_list_client.log"
+    if [ "$#" == "0" ]; then
+        $SEARCH_LIST_CLIENT_BIN $SEARCH_LIST_CLIENT_ARGS > $log_file 2>&1
+        if [ "$?" != "0" ]; then
+            echo "search_list_client failed, gflags=$SEARCH_LIST_CLIENT_ARGS"
+            return 1
+        else
+            echo "search_list_client finished, gflags=$SEARCH_LIST_CLIENT_ARGS"
+            return 0
+        fi
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        $SEARCH_LIST_CLIENT_BIN --flagfile=$gflags_file > $log_file 2>&1
+        if [ "$?" != "0" ]; then
+            echo "search_list_client failed, gflags=$gflags_file"
+            return 1
+        else
+            echo "search_list_client failed, gflags=$gflags_file"
+            return 0
+        fi
+    elif [ "$#" == "3" ]; then
+        server_addr="$1"
+        data_format="$2"
+        data_file="$3"
+        $SEARCH_LIST_CLIENT_BIN --CLIENT_server_addrs=$server_addr --CLIENT_input_format=$data_format --CLIENT_input_file=$data_file > $log_file 2>&1
+        if [ "$?" != "0" ]; then
+            echo "$data_file send data error!!!"
+            return 1
+        else
+            echo "$data_file send data finished!!!"
+            return 0
+        fi
     fi
 }
 
 function _extract_data_() 
 {
-    local tpls_conf_file="$1"
-    local data_list_file="$2"
-    local out_json_file="$3"
-
-    mkdir -p log/extractor
-    mkdir -p data/extractor
-    
-    has_errors=0
-    cat $data_list_file | while read line;
-    do
-        data_file=$line
-    
-        filename=`basename $data_file`
-        log_file="log/extractor/${filename}.log"
-        echo "$data_file extracting ..."
-        $EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file > $log_file 2>&1
+    log_file="log/page_extractor.log"
+    if [ "$#" == "0" ]; then
+        $PAGE_EXTRACTOR_BIN $PAGE_EXTRACTOR_ARGS > $log_file 2>&1
         if [ "$?" != "0" ]; then
-            echo "$data_file extract data error!!!"
-            echo "$data_file" > ${data_list_file}.error
-            let has_errors=$has_errors+1
+            echo "extract data error, gflags=$gflags_file"
+            return 1
         else
-            echo "$data_file extract data finished!!!"
-            echo "$data_file" > ${data_list_file}.suc
+            echo "extract data finished, gflags=$gflags_file"
+            return 0
         fi
-    done
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        $PAGE_EXTRACTOR_BIN --flagfile=$gflags_file > $log_file 2>&1
+        if [ "$?" != "0" ]; then
+            echo "extract data error, gflags=$gflags_file"
+            return 1
+        else
+            echo "extract data finished, gflags=$gflags_file"
+            return 0
+        fi
+    elif [ "$#" == "3" ]; then
+        local tpls_conf_file="$1"
+        local data_list_file="$2"
+        local out_json_file="$3"
     
-    if [ "$has_errors" != "0" ]; then
-        echo "Extract data finished with errors, ref ${data_list_file}.error"
-        return 1
-    else
-        echo "Extract data finished!!!"
-        return 0
-    fi
+        mkdir -p log/extractor
+        mkdir -p data/extractor
+        
+        has_errors=0
+        cat $data_list_file | while read line;
+        do
+            data_file=$line
+        
+            filename=`basename $data_file`
+            log_file="log/extractor/${filename}.log"
+            echo "$data_file extracting ..."
+            $EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file > $log_file 2>&1
+            if [ "$?" != "0" ]; then
+                echo "$data_file extract data error!!!"
+                echo "$data_file" > ${data_list_file}.error
+                let has_errors=$has_errors+1
+            else
+                echo "$data_file extract data finished!!!"
+                echo "$data_file" > ${data_list_file}.suc
+            fi
+        done
+        
+        if [ "$has_errors" != "0" ]; then
+            echo "Extract data finished with errors, ref ${data_list_file}.error"
+            return 1
+        else
+            echo "Extract data finished!!!"
+            return 0
+        fi
+    fi 
 }
 
 
@@ -312,57 +381,67 @@ if [ "$CMDNAME" = 'dispatcher_info.sh' ];then
     _info_dispatcher_
 fi
 
-
 if [ "$CMDNAME" = "query_client.sh" ];then
-    if [ "$#" != "3" ]; then
+    if [ "$#" == "0" ]; then
+        _query_client_
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        _query_client_ "$gflags_file"
+    elif [ "$#" == "2" ]; then
+        server_addrs="$1"
+        query_file="$2"
+        _query_client_ "$server_addrs" "$query_file"
+    else
         echo "Usage: $CMDNAME <server_addr> <server_port> <query_file>"
         exit 1
     fi
-    server_addr="$1"
-    server_port="$2"
-    query_file="$3"
-    _query_client_ "$server_addr" $server_port "$query_file"
     
 fi
 
-#data_list_file='spider-data-file.lst'
 if [ "$CMDNAME" = "extract_data.sh" ];then
-    if [ "$#" != "3" ]; then
+    if [ "$#" == "0" ]; then
+        _extract_data_
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        _extract_data_ "$gflags_file"
+    elif [ "$#" == "3" ]; then
+        tpls_conf_file="$1"
+        data_list_file="$2"
+        out_json_file="$3"
+    
+        if [ ! -f "$tpls_conf_file" ]; then
+            echo "$tpls_conf_file not exist or no regular file"
+            exit 1
+        fi
+        if [ ! -f "$data_list_file" ]; then
+            echo "$data_list_file not exist or no regular file"
+            exit 1
+        fi
+        if [ -e "$out_json_file" ]; then
+            echo "$out_json_file exist!"
+            exit 1
+        fi
+        _extract_data_ "$tpls_conf_file" "$data_list_file" "$out_json_file"
+    else
         echo "Usage: $CMDNAME <tpls_conf_file> <data_list_file> <out_json_file>"
         exit 1
     fi
-    tpls_conf_file="$1"
-    data_list_file="$2"
-    out_json_file="$3"
-
-    if [ ! -f "$tpls_conf_file" ]; then
-        echo "$tpls_conf_file not exist or no regular file"
-        exit 1
-    fi
-
-    if [ ! -f "$data_list_file" ]; then
-        echo "$data_list_file not exist or no regular file"
-        exit 1
-    fi
-
-    if [ -e "$out_json_file" ]; then
-        echo "$out_json_file exist!"
-        exit 1
-    fi
-    _extract_data_ "$tpls_conf_file" "$data_list_file" "$out_json_file"
-    
 fi
 
 if [ "$CMDNAME" = "search_list_client.sh" ];then
-    if [ "$#" != "3" ]; then
-        echo "Usage: $CMDNAME <server_addr> <server_port> <search_list_json_file>"
+    if [ "$#" == "0" ]; then
+        _search_list_client_ 
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        _search_list_client_ "$gflags_file"
+    elif [ "$#" == "2" ]; then
+        server_addrs="$1"
+        search_list_input_json_file="$2"
+        data_format="JSON"
+        _search_list_client_ "$server_addrs" "$data_format" "$search_list_input_json_file"
+    else
+        echo "Usage: $CMDNAME [<server_addrs> <search_list_json_file>]|[<search_list_client.gflags>]"
         exit 1
     fi
-    server_addr="$1"
-    server_port=$2
-    search_list_json_file="$3"
-    data_format="JSON"
-    _search_list_client_ "$server_addr" $server_port "$data_format" "$search_list_json_file"
-    
 fi
 
