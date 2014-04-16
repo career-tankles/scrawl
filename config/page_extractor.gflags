@@ -1,0 +1,8 @@
+
+
+--EXTRACTOR_input_tpls_file=conf/tpls.conf
+--EXTRACTOR_input_format=JSON
+--EXTRACTOR_input_file=xxx
+--EXTRACTOR_output_file=extract_page.data.json
+
+
