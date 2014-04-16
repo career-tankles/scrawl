@@ -18,7 +18,7 @@ DST_WORKDIR=/da1/first_engine/spider
 
 echo -n "rsync $WORKDIR to $DST_WORKDIR at $host_file, are you sure(yes|no)? " 
 read yesorno
-if [ "$yesorno" != "yes" -o "$yesorno" != "y" ]; then
+if [ "$yesorno" != "yes" -a "$yesorno" != "y" ]; then
     echo "process cancelled"
     exit 1
 fi
