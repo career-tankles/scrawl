@@ -7,12 +7,9 @@ SYSTEM=$(uname -s)
 RUNUSER=$(id -un)
 CPUNUM=$(cat /proc/cpuinfo|grep processor|wc -l)
 
-if [ -x "setenv.sh" ]; then
-. setenv.sh
-fi
-
 SCRIPT_PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-WORKDIR=`dirname $SCRIPT_PWD`
+export WORKDIR=`dirname $SCRIPT_PWD`
+
 if [ -z "$WORKDIR" ]; then
     echo "WORKDIR is empty, set first!!"
     exit 1

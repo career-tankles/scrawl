@@ -237,10 +237,10 @@ def load_hosts(host_file):
 def Usage():
     usage = ''' Usage:
         # 将path_name文件or文件夹同步到 host1,[host2...]机器上的remote_path目录下
-        rsync-tool-single -f path_name -s host1[,host2...] -d remote_path   
+        rsync-tool-single -s host1[,host2...] -f path_name -d remote_path   
 
         # 将path_name文件or文件夹同步到 host_file中机器上的remote_path目录下
-        rsync-tool-single -f path_name -c host_file -d remote_path 
+        rsync-tool-single -c host_file -f path_name -d remote_path 
     '''
     print usage
         
