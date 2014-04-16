@@ -80,7 +80,7 @@ def execute_r(cmds):
     return p
 
 def execute(cmds):
-    print cmds
+    print 'execute: ', cmds
     return subprocess.call(cmds, shell=True)
 
 RSYNC_CMD="rsync -avlz "
@@ -97,7 +97,6 @@ def _rsync_file_TO_remote_file(src_file, remote_host, remote_file):
     if p == 0: # 执行成功or
         global RSYNC_CMD
         cmd2 = '%s %s %s:%s' % (RSYNC_CMD, src_file, remote_host, remote_file)
-        print cmd2
         p = execute(cmd2)
         if p == 0: # 成功
             return True
@@ -112,7 +111,6 @@ def _rsync_file_TO_remote_path(src_file, remote_host, remote_path):
     if p == 0: # 执行成功or
         global RSYNC_CMD
         cmd2 = '%s %s %s:%s' % (RSYNC_CMD, src_file, remote_host, remote_path)
-        print cmd2
         p = execute(cmd2)
         if p == 0: # 成功
             return True
@@ -132,7 +130,6 @@ def _rsync_path_UNDER_remote_path(src_path, remote_host, remote_path):
     print cmd1
     p = execute_output(cmd1)
     cmd = '%s %s %s:%s' % (RSYNC_CMD, src_path, remote_host, remote_path)
-    print cmd
     p = execute(cmd)
     if p == 0: # 成功
         return True
@@ -149,7 +146,6 @@ def _rsync_files_in_path_UNDER_remote_path(src_path, remote_host, remote_path):
         src_path = src_path[:-1]
 
     cmd = '%s %s/ %s:%s' % (RSYNC_CMD, src_path, remote_host, remote_path)
-    print cmd
     p = execute(cmd)
     if p == 0:
         return True
