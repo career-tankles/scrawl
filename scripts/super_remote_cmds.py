@@ -18,7 +18,7 @@ N8_rsa_enter_passphrase = '.*Enter passphrase.*'
 N9_rsa_enter_same_passphrase = 'Enter same passphrase again'
 N10_rsa_overwrite = 'Overwrite (y/n)?'
 
-def super_execute(cmd):
+def super_execute(cmd, timeout=600):
     global debug_mode
     global password
     if cmd == None or len(cmd) <= 0:
@@ -32,8 +32,9 @@ def super_execute(cmd):
     while True:
         i = child.expect([N0_TIMEOUT, N1_EOF, N2_password, N3_are_you_sure_to_continue, N4_passwd_try_again,
             N5_rm_regular_file, N6_rm_dir_makesure, N7_rsa_enter_key, N8_rsa_enter_passphrase, N9_rsa_enter_same_passphrase, N10_rsa_overwrite,
-            ])
+            ], timeout=timeout)
         if i == 0:
+            print 'TIMEOUT'
             break
         elif i == 1:
             break
@@ -246,6 +247,7 @@ if __name__ == "__main__":
             elif servers:
                 hosts = parse_host(servers)
             for host in hosts:
+                #rsync_cmd = 'rsync -avlz %s %s@%s:%s' % (rsync_src_dir_or_file, username, host, rsync_dst_dir)
                 rsync_cmd = 'sudo rsync -avlz %s %s@%s:%s' % (rsync_src_dir_or_file, username, host, rsync_dst_dir)
                 ret = super_execute(rsync_cmd)
 #                if ret:
@@ -253,6 +255,7 @@ if __name__ == "__main__":
 #                else:
 #                    print 'Error: execute failed!!!'
         else:
+            #rsync_cmd = 'rsync -avlz %s %s' % (rsync_src_dir_or_file, rsync_dst_dir)
             rsync_cmd = 'sudo rsync -avlz %s %s' % (rsync_src_dir_or_file, rsync_dst_dir)
             ret = super_execute(rsync_cmd)
 #            if ret:

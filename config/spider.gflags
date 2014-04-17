@@ -1,34 +1,32 @@
 
---SERVER_thrift_port=9090
+--SERVER_thrift_port=9191
 
 --RES_url_list_queue_size=100000
---RES_dump_file=spider.dump.data
+--RES_dump_file=data/spider.dump.data
 --RES_usleep=100
 
 --DNS_threads=1
 --DNS_rqst_queue_size=20000
 --DNS_rslt_queue_size=30000
 --DNS_usleep=100
---DNS_nores_usleep=200
+--DNS_nores_usleep=1000
 --DNS_error_retry_time_sec=3600
 --DNS_update_time_sec=86400
 --DNS_retry_max=3
 
 --DOWN_threads=1
---DOWN_rqst_queue_size=2000
---DOWN_rslt_queue_size=3000
+--DOWN_rqst_queue_size=10000
+--DOWN_rslt_queue_size=11000
 --DOWN_http_page_maxsize=0
 --DOWN_clock_interval_sec=0
 --DOWN_clock_interval_us=1000
---DOWN_read_timeout_ms=10000
+--DOWN_read_timeout_ms=5000
 --DOWN_write_timeout_ms=1000
 --DOWN_defalut_fetch_interval_sec=2
 --DOWN_UserAgent=Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9
 
 --STORE_threads=1
---STORE_rslt_queue_size=3000
---STORE_usleep=100
---STORE_nores_usleep=200
+--STORE_rslt_queue_size=10000
 --STORE_file_max_num=1000
 --STORE_file_max_size=0x100000000
 --STORE_file_dir=data/spider

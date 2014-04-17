@@ -1,6 +1,5 @@
 
 --CLIENT_input_format=JSON
---CLIENT_input_file=extract_page.data.json
-
---CLIENT_server_addrs=localhost:9090
+--CLIENT_input_file=data/extractor/extract_page.data.json
+--CLIENT_server_addrs=localhost:9192
 

@@ -1,0 +1,10 @@
+#s7.mse.bjdt.qihoo.net
+10.138.70.139
+#s8.mse.bjdt.qihoo.net
+10.138.90.135
+#i14.mse.bjdt.qihoo.net
+10.138.89.41
+#i15.mse.bjdt.qihoo.net
+10.138.89.42
+#i16.mse.bjdt.qihoo.net
+10.138.89.43

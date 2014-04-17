@@ -136,7 +136,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 dist_data_DATA = spider.gflags dispatcher.gflags page_extractor.gflags search_list_client.gflags query_client.gflags \
                  tpls.conf tpl.m.baidu.com.conf \
-                 hosts.txt
+                 hosts.txt spider.host.txt
 
 all: all-am
 
