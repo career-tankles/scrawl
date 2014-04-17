@@ -77,6 +77,7 @@ int parse_search_list(cJSON* jroot, std::string host, boost::shared_ptr<ThriftCl
  
             int ret = client->send(href, new_userdata);
             while( ret != 0){
+                LOG(ERROR)<<"CLIENT send failed, change client ";
                 client = clients->client();
                 if(!client) {
                     LOG(ERROR)<<"CLIENT no client exist";
@@ -87,6 +88,7 @@ int parse_search_list(cJSON* jroot, std::string host, boost::shared_ptr<ThriftCl
         } else {
             int ret = client->send(href);
             while( ret != 0){
+                LOG(ERROR)<<"CLIENT send failed, change client ";
                 client = clients->client();
                 if(!client) {
                     LOG(ERROR)<<"CLIENT no client exist";
@@ -120,7 +122,7 @@ int parse_search_list_json(std::string input_json_file, boost::shared_ptr<Thrift
                 LOG(INFO)<<"CLIENT parse "<<records<<" records";
                 break; 
             }
-            std::cout<<cJSON_Print(jroot)<<std::endl;
+            //std::cout<<cJSON_Print(jroot)<<std::endl;
             //getchar();
             cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
             assert(jurl);

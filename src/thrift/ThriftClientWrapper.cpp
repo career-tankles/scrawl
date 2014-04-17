@@ -115,6 +115,7 @@ boost::shared_ptr<ThriftClientInstance> ThriftClientWrapper::client()
     for(int i=0; i<clients_.size(); i++) {
         boost::shared_ptr<ThriftClientInstance> c = *(iter+last_client_index_);
         if(c->status() != TCS_OK) {
+            printf("ERROR: has error servers\n");
             if(c->connect_time() + conn_retry_interval_ >= time(NULL)) {
                 c->connect();
             }

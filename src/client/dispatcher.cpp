@@ -37,14 +37,14 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
   SpiderWebServiceHandler() {
     // Your initialization goes here
     send_num_ = 0;
-    switch_client_num_ = 0;
+    switch_client_num_ = 1000;
   }
   SpiderWebServiceHandler(boost::shared_ptr<ThriftClientWrapper>& clients) 
     : clients_(clients)
   {
     // Your initialization goes here
     send_num_ = 0;
-    switch_client_num_ = 0;
+    switch_client_num_ = 1000;
   }
 
 
@@ -54,7 +54,8 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
   }
 
   int32_t submit(const HttpRequest& rqst) {
-    if(!client_ || send_num_++ >= switch_client_num_){
+    if(!client_ || send_num_ >= switch_client_num_){
+         LOG(INFO)<<"DISPATCHER witch client "<<send_num_;
          client_ = clients_->client();
          if(!client_) {
              LOG(ERROR)<<"DISPATCHER no client exist";
@@ -63,6 +64,7 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
          send_num_ = 0;
      }
 
+     send_num_ ++;
      int ret = client_->send(rqst.url, rqst.userdata);
      if( ret != 0){
          client_ = clients_->client();
@@ -70,13 +72,14 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
              LOG(ERROR)<<"DISPATCHER no client exist";
              return -1 ;
          }
+         send_num_ = 0;
      }
       
      return 0;
   }  
      
   int32_t submit_url(const std::string& url) {
-    if(!client_ || send_num_++ >= switch_client_num_){
+    if(!client_ || send_num_ >= switch_client_num_){
          client_ = clients_->client();
          if(!client_) {
              LOG(ERROR)<<"DISPATCHER no client exist";
@@ -85,6 +88,7 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
          send_num_ = 0;
      }
 
+     send_num_++;
      int ret = client_->send(url);
      if( ret != 0){
          client_ = clients_->client();
@@ -92,6 +96,7 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
              LOG(ERROR)<<"DISPATCHER no client exist";
              return -1 ;
          }
+         send_num_ = 0;
      }
   }  
 
