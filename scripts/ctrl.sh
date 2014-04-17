@@ -20,7 +20,7 @@ SPIDER_PROC="service_spider"
 SPIDER_BIN="$WORKDIR/bin/service_spider "
 SPIDER_ARGS=" --flagfile=$WORKDIR/conf/spider.gflags "
 
-DISPATCHER_PROC="dispacher"
+DISPATCHER_PROC="dispatcher"
 DISPATCHER_BIN="$WORKDIR/bin/dispatcher "
 DISPATCHER_ARGS=" --flagfile=$WORKDIR/conf/dispatcher.gflags "
 
