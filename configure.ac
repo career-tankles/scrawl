@@ -21,7 +21,6 @@ AC_CONFIG_FILES([
     src/spider/Makefile
     src/client/Makefile
     src/extractor/Makefile
-    src/dispatcher/Makefile
     scripts/Makefile
     config/Makefile
     test/Makefile
