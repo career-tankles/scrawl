@@ -125,7 +125,7 @@ function _start_dispatcher_()
 {
     msg="start $DISPATCHER_BIN $DISPATCHER_ARGS"
     echo $msg' ...'
-    $DISPATCHER_BIN $DISPATCHER_ARGS >> $WORKDIR/log/dispatcher.log 2>&1 &
+    $DISPATCHER_BIN $DISPATCHER_ARGS > $WORKDIR/log/dispatcher.log 2>&1 &
     _log "$WORKDIR/log/start.log" "$msg"
 }
 
@@ -161,7 +161,7 @@ function _start_spider_()
 {
     msg="start $SPIDER_BIN $SPIDER_ARGS"
     echo $msg' ...'
-    $SPIDER_BIN $SPIDER_ARGS >> $WORKDIR/log/spider.log 2>&1 &
+    $SPIDER_BIN $SPIDER_ARGS > $WORKDIR/log/spider.log 2>&1 &
     _log "$WORKDIR/log/start.log" "$msg"
 }
 

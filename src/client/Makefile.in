@@ -48,15 +48,18 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_dispatcher_OBJECTS = dispatcher.$(OBJEXT)
+am_dispatcher_OBJECTS = dispatcher.$(OBJEXT) \
+	ThriftClientWrapper.$(OBJEXT)
 dispatcher_OBJECTS = $(am_dispatcher_OBJECTS)
 dispatcher_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
 	${top_dir}/src/thrift/libspider_webservice.a
-am_query_client_OBJECTS = query_client.$(OBJEXT)
+am_query_client_OBJECTS = query_client.$(OBJEXT) \
+	ThriftClientWrapper.$(OBJEXT)
 query_client_OBJECTS = $(am_query_client_OBJECTS)
 query_client_DEPENDENCIES = ${top_dir}/common/md5/libmd5.a \
 	${top_dir}/src/thrift/libspider_webservice.a
-am_search_list_client_OBJECTS = search_list_client.$(OBJEXT)
+am_search_list_client_OBJECTS = search_list_client.$(OBJEXT) \
+	ThriftClientWrapper.$(OBJEXT)
 search_list_client_OBJECTS = $(am_search_list_client_OBJECTS)
 search_list_client_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
 	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
@@ -170,17 +173,17 @@ AM_CPPFLAGS = -g -I. \
                 -I${top_dir}/common/cJSON   \
                 -I${top_dir}/common/utils 
 
-query_client_SOURCES = query_client.cpp
+query_client_SOURCES = query_client.cpp ThriftClientWrapper.cpp
 query_client_LDADD = ${top_dir}/common/md5/libmd5.a \
                        ${top_dir}/src/thrift/libspider_webservice.a
 
-search_list_client_SOURCES = search_list_client.cpp
+search_list_client_SOURCES = search_list_client.cpp ThriftClientWrapper.cpp
 search_list_client_LDADD = $(top_dir)/common/cJSON/libcJSON.a \
                            $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                            $(top_dir)/common/http_parser/libHttpParser.a  \
                            $(top_dir)/src/thrift/libspider_webservice.a
 
-dispatcher_SOURCES = dispatcher.cpp 
+dispatcher_SOURCES = dispatcher.cpp ThriftClientWrapper.cpp
 dispatcher_LDADD = ${top_dir}/common/md5/libmd5.a \
                      ${top_dir}/src/thrift/libspider_webservice.a
 
@@ -256,6 +259,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ThriftClientWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dispatcher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query_client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search_list_client.Po@am__quote@

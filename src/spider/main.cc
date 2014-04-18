@@ -56,15 +56,21 @@ class SpiderWebServiceHandler : virtual public SpiderWebServiceIf {
     Res* res = new Res();
     res->url = rqst.url;
     res->userdata = rqst.userdata;
-    return spider_->submit(res);
+    int ret = spider_->submit(res);
+    if (ret != 0)
+        fprintf(stderr, "spider_->submit(res) = %d\n", ret);
+    return 0;
   }
 
   int32_t submit_url(const std::string& url) {
     Res* res = new Res();
     res->url = url;
     res->userdata = "";
-    return spider_->submit(res);
+    int ret = spider_->submit(res);
+    if (ret != 0)
+        fprintf(stderr, "spider_->submit(res) = %d\n", ret);
 
+    return 0;
   }
 
 private:
@@ -83,15 +89,21 @@ struct _spider_thread_ {
 
 
 boost::shared_ptr<SpiderResManager> g_spider;
-TThreadPoolServer* g_server = NULL;
+//TThreadPoolServer* g_server = NULL;
+//TSimpleServer* g_server = NULL;
+TThreadedServer* g_server = NULL;
 
 static void sig_handler(const int sig) {
     LOG(INFO)<<"SIGINT or SIGTERM is catched.\nsystem is stoping\n";
-    if(g_server) {
-        g_server->stop();
-    }
     if(g_spider) {
+        LOG(ERROR)<<"AAAAAAAAAA: g_spider";
         g_spider->stop();
+        g_spider = boost::shared_ptr<SpiderResManager>();
+    }
+    if(g_server) {
+        LOG(ERROR)<<"AAAAAAAAAA: g_server";
+        g_server->stop();
+        g_server = NULL;
     }
 }
 
@@ -116,11 +128,13 @@ int main(int argc, char **argv) {
     int port = FLAGS_SERVER_thrift_port;
     shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(spider));
     shared_ptr<TProcessor> processor(new SpiderWebServiceProcessor(handler));
-    shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
+    shared_ptr<TServerTransport> serverTransport(new TServerSocket(port, 100, 1000));
     shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
     shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
  
-    //TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+//    TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+
+/*
     int workerCount = FLAGS_SERVER_thrift_threadnum;
     shared_ptr<ThreadManager> threadManager =
         ThreadManager::newSimpleThreadManager(workerCount);
@@ -133,17 +147,20 @@ int main(int argc, char **argv) {
                              transportFactory,
                              protocolFactory,
                              threadManager);
-  /*
+*/
+ 
     TThreadedServer server(processor,
                          serverTransport,
                          transportFactory,
                          protocolFactory);
 
-  */
+
   
     g_server = &server;
     printf("Starting the server...\n");
     server.serve();
+
+    printf("server.server end!");
 
     threadpool.wait_all();
 

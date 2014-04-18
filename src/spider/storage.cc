@@ -41,10 +41,12 @@ public:
             if(file_no_ == FLAGS_STORE_file_max_num) {
                 LOG(INFO)<<"STORAGE file reach max "<<FLAGS_STORE_file_max_num<<", use the first one";
                 file_no_ = 0;
-                sprintf(buf, "%s-%03d", data_prefix_.c_str(), file_no_);
+                //sprintf(buf, "%s-%03d", data_prefix_.c_str(), file_no_);
+                sprintf(buf, "%s-%03d.data", data_prefix_.c_str(), file_no_);
                 break;
             }
-            sprintf(buf, "%s-%03d", data_prefix_.c_str(), file_no_);
+            //sprintf(buf, "%s-%03d", data_prefix_.c_str(), file_no_);
+            sprintf(buf, "%s-%03d.data", data_prefix_.c_str(), file_no_);
             if(-1 == stat(buf, &stat_buf)) {
                 break; 
             }
@@ -111,7 +113,8 @@ private:
         if(fd_ == -1) {
             int new_fno = new_fileno();
             char buf[256] = {0};
-            sprintf(buf, "%s-%03d", data_prefix_.c_str(), new_fno);
+            //sprintf(buf, "%s-%03d", data_prefix_.c_str(), new_fno);
+            sprintf(buf, "%s-%03d.data", data_prefix_.c_str(), new_fno);
             cur_file_ = buf;
             fd_ = open(buf);
             last_switch_file_time_hour_ = now/FLAGS_STORE_file_swith_time_sec;

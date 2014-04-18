@@ -1,5 +1,5 @@
 
 
---CLIENT_query_file=query.txt
---CLIENT_server_addrs=localhost:9192
+--CLIENT_query_file=data/query/query.txt
+--CLIENT_server_addrs=localhost:9191
 

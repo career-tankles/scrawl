@@ -1,4 +1,5 @@
 
+#include <glog/logging.h>
 #include "ThriftClientWrapper.h"
 
 ThriftClientInstance::ThriftClientInstance() 
@@ -42,7 +43,7 @@ int ThriftClientInstance::connect(const char* ip, unsigned short port)
 
         return 0;
     } catch (TException &tx) {
-       printf("ERROR: connect to %s:%d %s\n", ip, port, tx.what());
+       LOG(ERROR)<<"ERROR: connect to "<<ip<<":"<<port<<" "<<tx.what();
     }
     status_ = TCS_ERROR;
     return -1;
@@ -50,12 +51,12 @@ int ThriftClientInstance::connect(const char* ip, unsigned short port)
 
 int ThriftClientInstance::send(const std::string& url) {
     try {
-        fprintf(stderr, "DISPATCHER send to %s:%d %s\n", ip_.c_str(), port_, url.c_str());
+        LOG(INFO)<<"DISPATCHER send to "<<ip_<<":"<<port_<<" "<<url;
         return client_->submit_url(url);
     } catch (TException &tx) {
         status_ = TCS_ERROR;
     }
-    fprintf(stderr, "DISPATCHER send to %s:%d %s failed!\n", ip_.c_str(), port_, url.c_str());
+    LOG(INFO)<<"DISPATCHER send to "<<ip_<<":"<<port_<<" "<<url<<" failed!\n";
     return -1;
 }
 
@@ -64,12 +65,12 @@ int ThriftClientInstance::send(const std::string& url, const std::string& userda
         HttpRequest rqst;
         rqst.__set_url(url);
         rqst.__set_userdata(userdata);
-        fprintf(stderr, "DISPATCHER send to %s:%d %s\n", ip_.c_str(), port_, url.c_str());
+        LOG(INFO)<<"DISPATCHER send to "<<ip_<<":"<<port_<<" "<<url;
         return client_->submit(rqst);
     } catch (TException &tx) {
         status_ = TCS_ERROR;
     }
-    fprintf(stderr, "DISPATCHER send to %s:%d %s failed!\n", ip_.c_str(), port_, url.c_str());
+    LOG(INFO)<<"DISPATCHER send to "<<ip_<<":"<<port_<<" "<<url<<" failed!\n";
     return -1;
 }
 
@@ -80,7 +81,7 @@ int ThriftClientInstance::close()
             transport_->close();
         return 0;
     } catch (TException &tx) {
-        printf("ERROR: close %s\n", tx.what());
+        LOG(ERROR)<<"ERROR: client close failed "<<tx.what();
     }
     return 1;
 }
@@ -104,7 +105,7 @@ int ThriftClientWrapper::connect(const char* ip, unsigned short port)
     clients_.push_back(client);
     return ret;
   } catch (TException &tx) {
-     printf("ERROR: connect to %s:%d %s\n", ip, port, tx.what());
+     LOG(ERROR)<<"ERROR: connect to "<<ip<<":"<<port<<" "<<tx.what();
   }
     return -1;
 }
@@ -115,8 +116,9 @@ boost::shared_ptr<ThriftClientInstance> ThriftClientWrapper::client()
     for(int i=0; i<clients_.size(); i++) {
         boost::shared_ptr<ThriftClientInstance> c = *(iter+last_client_index_);
         if(c->status() != TCS_OK) {
-            printf("ERROR: has error servers\n");
+            LOG(ERROR)<<"ERROR: has error servers"<<clients_.size()<<" "<<conn_retry_interval_;
             if(c->connect_time() + conn_retry_interval_ >= time(NULL)) {
+                LOG(ERROR)<<"reconnect "<<c->ip()<<":"<<c->port();
                 c->connect();
             }
         }
@@ -126,6 +128,9 @@ boost::shared_ptr<ThriftClientInstance> ThriftClientWrapper::client()
             return c;
         }
     }
+
+    LOG(ERROR)<<"ERROR: no alive client exist";
+    usleep(100*1000);
  
     return boost::shared_ptr<ThriftClientInstance>();
 }

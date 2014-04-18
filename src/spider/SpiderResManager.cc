@@ -253,7 +253,9 @@ int _load_dumps_(std::string dump_file, SpiderResManager& spider) {
             }
             
             cJSON* jurl = cJSON_GetObjectItem(obj, "url");
-            assert(jurl);
+            if(jurl == NULL) {
+                break;
+            }
             cJSON* juserdata = cJSON_GetObjectItem(obj, "userdata");
             cJSON* jerr_count = cJSON_GetObjectItem(obj, "err_count");
 
@@ -267,6 +269,7 @@ int _load_dumps_(std::string dump_file, SpiderResManager& spider) {
                 res->err_count = jerr_count->valueint;
             }
 
+            LOG(INFO)<<"RES load dump "<<records<<" "<<res->url;
             spider.submit(res);
             records++;
 
@@ -298,8 +301,8 @@ int SpiderResManager::svc() {
     if(stat(dump_file.c_str(), &sb) != -1) {
         assert((sb.st_mode&S_IFMT) == S_IFREG); // 普通文件
         if(sb.st_size > 0) {
-            _load_dumps_(dump_file, *this);
-            unlink(dump_file.c_str());
+            int ret = _load_dumps_(dump_file, *this);
+            if(ret == 0) unlink(dump_file.c_str());
         }
     }
     

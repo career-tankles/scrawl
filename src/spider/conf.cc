@@ -7,7 +7,7 @@ DEFINE_int32(SERVER_thrift_threadnum, 10, "");
 
 DEFINE_int32(RES_url_list_queue_size, 20000, ""); 
 DEFINE_int32(RES_usleep, 100, "");
-DEFINE_int32(RES_add_res_each_loop, 500, "");
+DEFINE_int32(RES_add_res_each_loop, 1000, "");
 DEFINE_string(RES_dump_file, "spider_dump.data", "");
 
 DEFINE_int32(DNS_threads, 1, "");
