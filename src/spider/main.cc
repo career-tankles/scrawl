@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
     int port = FLAGS_SERVER_thrift_port;
     shared_ptr<SpiderWebServiceHandler> handler(new SpiderWebServiceHandler(spider));
     shared_ptr<TProcessor> processor(new SpiderWebServiceProcessor(handler));
-    shared_ptr<TServerTransport> serverTransport(new TServerSocket(port, 100, 1000));
+    shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
     shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
     shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
  

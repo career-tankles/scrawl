@@ -82,7 +82,7 @@ public:
                 event_base_set(_inargs_->base, &_inargs_->timer_ev);
                 timeout_add(&_inargs_->timer_ev, &_inargs_->tv);
 
-                LOG(INFO)<<"TIMEWAIT timeout_add "<<_inargs_->tv.tv_sec<<" "<<_inargs_->tv.tv_usec;
+                //LOG(INFO)<<"TIMEWAIT timeout_add "<<_inargs_->tv.tv_sec<<" "<<_inargs_->tv.tv_usec;
 
             } else {
                 // 直接放入ready队列
@@ -102,7 +102,7 @@ public:
         TimeWait::_Args_* wait_rqst = (TimeWait::_Args_*)_inargs_->data;
         // 放入ready队列
         waiter->ready_list_.push(wait_rqst->userdata);
-        LOG(INFO)<<"TIMEWAIT timeout ready ";
+        //LOG(INFO)<<"TIMEWAIT timeout ready ";
 
         timeout_del(&_inargs_->timer_ev);
         delete wait_rqst; wait_rqst = NULL;
