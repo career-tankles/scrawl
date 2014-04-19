@@ -305,7 +305,8 @@ function _extract_data_()
             filename=`basename $data_file`
             log_file="log/extractor/${filename}.log"
             echo "$data_file extracting ..."
-            $EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file > $log_file 2>&1
+            $PAGE_EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file > $log_file 2>&1
+            #$PAGE_EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file 
             if [ "$?" != "0" ]; then
                 echo "$data_file extract data error!!!"
                 echo "$data_file" > ${data_list_file}.error
@@ -398,6 +399,67 @@ if [ "$CMDNAME" = "query_client.sh" ];then
     
 fi
 
+if [ "$CMDNAME" = "search_list_client.sh" ];then
+    if [ "$#" == "0" ]; then
+        _search_list_client_ 
+    elif [ "$#" == "1" ]; then
+        gflags_file="$1"
+        _search_list_client_ "$gflags_file"
+    elif [ "$#" == "2" ]; then
+        server_addrs="$1"
+        search_list_input_json_file="$2"
+        data_format="JSON"
+        _search_list_client_ "$server_addrs" "$data_format" "$search_list_input_json_file"
+    else
+        echo "Usage: $CMDNAME [<server_addrs> <search_list_json_file>]|[<search_list_client.gflags>]"
+        exit 1
+    fi
+fi
+
+if [ "$CMDNAME" = "make_data_list.sh" ];then
+    echo $#
+    if [ "$#" != 3 ]; then
+        echo "Usage: $CMDNAME <INC|ALL> <data_file_pattern> <data_list_outfile>"
+        exit 1
+    fi
+    if [ "$1" != "INC" -a "$1" != "ALL" ]; then
+        echo "Usage: $CMDNAME <INC|ALL>"
+        exit 1
+    fi
+
+    flag="$1"
+    file_pattern="$2"
+    data_list_outfile="$3"
+    
+    echo $flag, $file_pattern, $data_list_outfile
+
+    datafiles_n=`ls -lu $file_pattern 2>/dev/null | wc -l`
+    datafiles=`ls -lu $file_pattern 2>/dev/null | awk '{print $NF}'` # 逆序 -lru
+    if [ -z "$datafiles" ]; then
+        echo "no data files exist"
+        exit 1
+    fi
+    if [ "$flag" == "INC" ]; then
+        let datafiles_n=$datafiles_n-1
+        echo $datafiles_n
+    fi
+
+    # clear
+    >$data_list_outfile
+
+    i=0
+    for file in $datafiles;
+    do
+        if [ "$i" -ge "$datafiles_n" ]; then
+            break
+        fi
+        echo $file
+        echo $file  >>$data_list_outfile
+
+        let i=$i+1
+    done
+fi
+
 if [ "$CMDNAME" = "extract_data.sh" ];then
     if [ "$#" == "0" ]; then
         _extract_data_
@@ -428,20 +490,6 @@ if [ "$CMDNAME" = "extract_data.sh" ];then
     fi
 fi
 
-if [ "$CMDNAME" = "search_list_client.sh" ];then
-    if [ "$#" == "0" ]; then
-        _search_list_client_ 
-    elif [ "$#" == "1" ]; then
-        gflags_file="$1"
-        _search_list_client_ "$gflags_file"
-    elif [ "$#" == "2" ]; then
-        server_addrs="$1"
-        search_list_input_json_file="$2"
-        data_format="JSON"
-        _search_list_client_ "$server_addrs" "$data_format" "$search_list_input_json_file"
-    else
-        echo "Usage: $CMDNAME [<server_addrs> <search_list_json_file>]|[<search_list_client.gflags>]"
-        exit 1
-    fi
-fi
+if [ "$CMDNAME" = "extract_data.sh" ];then
 
+fi

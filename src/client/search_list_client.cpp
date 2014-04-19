@@ -31,17 +31,27 @@ using namespace apache::thrift::transport;
 using namespace boost;
 using namespace spider::webservice ;
 
+DEFINE_string(CLIENT_skip_empty_userdata, "TRUE", "");
+DEFINE_string(CLIENT_input_format, "JSON", "");
+DEFINE_string(CLIENT_input_file, "output.json", "");
+DEFINE_string(CLIENT_server_addrs, "localhost:9090", "");
+
 int parse_search_list(cJSON* jroot, std::string host, boost::shared_ptr<ThriftClientWrapper>& clients, std::vector<std::string>* urls=NULL) {
  
     cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
     assert(jurl);
-    cJSON* jhost = cJSON_GetObjectItem(jroot, "host");
-    assert(jhost);
+    std::string url = jurl->valuestring;
    
     std::string userdata;
     cJSON* juserdata = cJSON_GetObjectItem(jroot, "userdata");
     if(juserdata) {
         userdata = juserdata->valuestring;
+    }
+
+    if(FLAGS_CLIENT_skip_empty_userdata == "TRUE" && userdata.empty())
+    {
+        LOG(INFO)<<"CLIENT skip empty userdata "<<url;
+        return 0;
     }
 
     boost::shared_ptr<ThriftClientInstance> client = clients->client();
@@ -66,8 +76,6 @@ int parse_search_list(cJSON* jroot, std::string host, boost::shared_ptr<ThriftCl
             href = "http://" + host + href;
         }
         
-        std::cout<<"AA: "<<href<<std::endl;
-
         if(urls) {
             urls->push_back(href);
         }
@@ -141,8 +149,8 @@ int parse_search_list_json(std::string input_json_file, boost::shared_ptr<Thrift
             records++;
 
             std::vector<std::string> urls;
-            int ret = parse_search_list(jroot, host, clients, &urls);
-            //int ret = parse_search_list(jroot, host, NULL, clients);
+            //int ret = parse_search_list(jroot, host, clients, &urls);
+            int ret = parse_search_list(jroot, host, clients, NULL);
             if(ret == 0) {
                 //print(urls);
             } else {
@@ -162,10 +170,6 @@ int parse_search_list_json(std::string input_json_file, boost::shared_ptr<Thrift
     close(fd);
 }
 
-
-DEFINE_string(CLIENT_input_format, "JSON", "");
-DEFINE_string(CLIENT_input_file, "output.json", "");
-DEFINE_string(CLIENT_server_addrs, "localhost:9090", "");
 
 int main(int argc, char** argv)
 {
