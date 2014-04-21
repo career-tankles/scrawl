@@ -320,12 +320,8 @@ int parse_http_pages(std::string input_json_file, std::map<std::string, struct c
             cJSON* jhost = cJSON_GetObjectItem(jinfo, "host");
             assert(jhost);
 
-            cJSON* juserdata = cJSON_GetObjectItem(jinfo, "userdata");
-            assert(juserdata);
-
             std::string host = jhost->valuestring;
             std::string url = jurl->valuestring;
-            std::string userdata = juserdata->valuestring;
 
             records++;
 
@@ -334,9 +330,6 @@ int parse_http_pages(std::string input_json_file, std::map<std::string, struct c
                 struct cfg_tpl_host& c = maps_tpls[host];
                 int ret = extract_http_page_json(obj, c, return_json_str) ;
                 if(ret == 0) {
-                    //std::cout<<return_json_str<<std::endl;
-                    //io_append(outfd, userdata);
-                    //io_append(outfd, " ", 1);
                     io_append(outfd, return_json_str);
                     io_append(outfd, "\n", 1);
                 }

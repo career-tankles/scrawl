@@ -2367,7 +2367,13 @@ PUGI__NS_BEGIN
 			}
 			else if (*s == 0 && endch == '-') PUGI__THROW_ERROR(status_bad_comment, s);
 			else if (*s == 0 && endch == '[') PUGI__THROW_ERROR(status_bad_cdata, s);
-			else PUGI__THROW_ERROR(status_unrecognized_tag, s);
+            else if (strncasecmp(s, "doctype", strlen("doctype")) == 0) {
+                // skip  <!doctype html> or <!DOCTYPE html>
+				PUGI__SCANFOR(*s == '>'); s++;
+            }
+			else {
+                PUGI__THROW_ERROR(status_unrecognized_tag, s);
+            }
 
 			return s;
 		}
@@ -2753,7 +2759,10 @@ PUGI__NS_BEGIN
 						if (!s) return s;
 					}
 					else if (*s == 0 && endch == '?') PUGI__THROW_ERROR(status_bad_pi, s);
-					else PUGI__THROW_ERROR(status_unrecognized_tag, s);
+					else {
+                        fprintf(stderr, "BBBB: status_unrecognized_tag %s\n", std::string(s, 20).c_str());
+                        PUGI__THROW_ERROR(status_unrecognized_tag, s);
+                    }
 				}
 				else
 				{
@@ -2872,8 +2881,10 @@ PUGI__NS_BEGIN
 			if (result)
 			{
 				// since we removed last character, we have to handle the only possible false positive (stray <)
-				if (endch == '<')
+				if (endch == '<') {
+                    fprintf(stderr, "CCC: status_unrecognized_tag \n");
 					return make_parse_result(status_unrecognized_tag, length - 1);
+                }
 
 				// check if there are any element nodes parsed
 				xml_node_struct* first_root_child_parsed = last_root_child ? last_root_child->next_sibling : root->first_child;

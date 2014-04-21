@@ -2,7 +2,7 @@
 
 --EXTRACTOR_input_tpls_file=conf/tpls.conf
 --EXTRACTOR_input_format=JSON
---EXTRACTOR_input_file=data/spider/data-00-001
+--EXTRACTOR_input_file=data/spider/spider-00-016.data
 --EXTRACTOR_output_file=data/extractor/extract_page.data.json
 
 

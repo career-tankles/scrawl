@@ -490,6 +490,3 @@ if [ "$CMDNAME" = "extract_data.sh" ];then
     fi
 fi
 
-if [ "$CMDNAME" = "extract_data.sh" ];then
-
-fi
