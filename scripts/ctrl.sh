@@ -417,7 +417,6 @@ if [ "$CMDNAME" = "search_list_client.sh" ];then
 fi
 
 if [ "$CMDNAME" = "make_data_list.sh" ];then
-    echo $#
     if [ "$#" != 3 ]; then
         echo "Usage: $CMDNAME <INC|ALL> <data_file_pattern> <data_list_outfile>"
         exit 1
