@@ -2,4 +2,5 @@
 
 --SERVER_thrift_port=9192
 --SERVER_thrift_threadnum=10
---CLIENT_server_addrs=localhost:9191
+--CLIENT_server_addrs=10.138.89.41:9191,10.138.89.42:9191,10.138.89.43:9191,10.138.70.139:9191,10.138.90.135:9191
+

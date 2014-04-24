@@ -224,9 +224,9 @@ int _extract_data_(std::string host, const char* resp_headers, const char* resp_
                 }
                 has_doc_parsed = true;
             }
-            int ret = _extract_http_page_(host, doc, tpl_chain, json_str, records, extra_fields);
+            ret = _extract_http_page_(host, doc, tpl_chain, json_str, records, extra_fields);
             if(ret == 0) {
-                LOG(ERROR)<<"EXTRACTOR _extract_http_page_ finish "<<tpl_chain._name_;
+                LOG(ERROR)<<"EXTRACTOR _extract_http_page_ finish "<<tpl_chain._name_<<" "<<json_str;
                 break;
             }
         } else {
@@ -314,7 +314,10 @@ int parse_http_pages(std::string input_json_file, std::map<std::string, struct c
             }
             
             cJSON* jinfo = cJSON_GetObjectItem(obj, "info");
-            assert(jinfo);
+            if(jinfo == NULL) {
+                LOG(ERROR)<<"EXTRACTOR jinfo is null, data: "<<cJSON_Print(obj);
+                break;
+            }
             cJSON* jurl = cJSON_GetObjectItem(jinfo, "url");
             assert(jurl);
             cJSON* jhost = cJSON_GetObjectItem(jinfo, "host");
@@ -329,6 +332,7 @@ int parse_http_pages(std::string input_json_file, std::map<std::string, struct c
                 std::string return_json_str;
                 struct cfg_tpl_host& c = maps_tpls[host];
                 int ret = extract_http_page_json(obj, c, return_json_str) ;
+                LOG(INFO)<<"AAAAAAAAAAAAA: "<<ret<<" ";
                 if(ret == 0) {
                     io_append(outfd, return_json_str);
                     io_append(outfd, "\n", 1);

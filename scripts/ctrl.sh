@@ -5,6 +5,7 @@ ulimit -c unlimited
 SYSTEM=$(uname -s)
 RUNUSER=$(id -un)
 CPUNUM=$(cat /proc/cpuinfo|grep processor|wc -l)
+_myhostname=$HOSTNAME
 
 SCRIPT_PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export WORKDIR=`dirname $SCRIPT_PWD`
@@ -292,7 +293,7 @@ function _extract_data_()
     elif [ "$#" == "3" ]; then
         local tpls_conf_file="$1"
         local data_list_file="$2"
-        local out_json_file="$3"
+        local out_json_dir="$3"
     
         mkdir -p log/extractor
         mkdir -p data/extractor
@@ -304,6 +305,7 @@ function _extract_data_()
         
             filename=`basename $data_file`
             log_file="log/extractor/${filename}.log"
+            out_json_file="${out_json_dir}/${_myhostname}.${filename}.json"
             echo "$data_file extracting ..."
             $PAGE_EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file > $log_file 2>&1
             #$PAGE_EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file 
@@ -313,7 +315,7 @@ function _extract_data_()
                 let has_errors=$has_errors+1
             else
                 echo "$data_file extract data finished!!!"
-                echo "$data_file" > ${data_list_file}.suc
+                echo "$data_file" > ${data_list_file}.success
             fi
         done
         
@@ -324,6 +326,41 @@ function _extract_data_()
             echo "Extract data finished!!!"
             return 0
         fi
+#    elif [ "$#" == "3" ]; then
+#        local tpls_conf_file="$1"
+#        local data_list_file="$2"
+#        local out_json_file="$3"
+#    
+#        mkdir -p log/extractor
+#        mkdir -p data/extractor
+#        
+#        has_errors=0
+#        cat $data_list_file | while read line;
+#        do
+#            data_file=$line
+#        
+#            filename=`basename $data_file`
+#            log_file="log/extractor/${filename}.log"
+#            echo "$data_file extracting ..."
+#            $PAGE_EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file > $log_file 2>&1
+#            #$PAGE_EXTRACTOR_BIN --EXTRACTOR_input_tpls_file=$tpls_conf_file --EXTRACTOR_input_format=JSON --EXTRACTOR_input_file=$data_file --EXTRACTOR_output_file=$out_json_file 
+#            if [ "$?" != "0" ]; then
+#                echo "$data_file extract data error!!!"
+#                echo "$data_file" > ${data_list_file}.error
+#                let has_errors=$has_errors+1
+#            else
+#                echo "$data_file extract data finished!!!"
+#                echo "$data_file" > ${data_list_file}.suc
+#            fi
+#        done
+#        
+#        if [ "$has_errors" != "0" ]; then
+#            echo "Extract data finished with errors, ref ${data_list_file}.error"
+#            return 1
+#        else
+#            echo "Extract data finished!!!"
+#            return 0
+#        fi
     fi 
 }
 
@@ -452,7 +489,7 @@ if [ "$CMDNAME" = "make_data_list.sh" ];then
         if [ "$i" -ge "$datafiles_n" ]; then
             break
         fi
-        echo $file
+        echo "add file: $file"
         echo $file  >>$data_list_outfile
 
         let i=$i+1
@@ -468,7 +505,7 @@ if [ "$CMDNAME" = "extract_data.sh" ];then
     elif [ "$#" == "3" ]; then
         tpls_conf_file="$1"
         data_list_file="$2"
-        out_json_file="$3"
+        out_json_dir="$3"
     
         if [ ! -f "$tpls_conf_file" ]; then
             echo "$tpls_conf_file not exist or no regular file"
@@ -478,13 +515,12 @@ if [ "$CMDNAME" = "extract_data.sh" ];then
             echo "$data_list_file not exist or no regular file"
             exit 1
         fi
-        if [ -e "$out_json_file" ]; then
-            echo "$out_json_file exist!"
-            exit 1
+        if [ ! -e "$out_json_dir" ]; then
+            mkdir -p $out_json_dir
         fi
-        _extract_data_ "$tpls_conf_file" "$data_list_file" "$out_json_file"
+        _extract_data_ "$tpls_conf_file" "$data_list_file" "$out_json_dir"
     else
-        echo "Usage: $CMDNAME <tpls_conf_file> <data_list_file> <out_json_file>"
+        echo "Usage: $CMDNAME <tpls_conf_file> <data_list_file> <out_json_dir>"
         exit 1
     fi
 fi

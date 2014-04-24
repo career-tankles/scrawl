@@ -40,6 +40,10 @@
 using namespace std;
 using namespace boost;
 
+DEFINE_string(CLIENT_server_addrs, "localhost:9090", "");
+DEFINE_string(CLIENT_query_file, "query.txt", "");
+DEFINE_string(CLIENT_default_host, "http://m.baidu.com/s?word=", "");
+
 void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper>& clients) {
     int fd = open(file.c_str(), O_RDONLY);
     if(fd == -1) {
@@ -71,7 +75,7 @@ void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper>& client
                     unsigned char md5_val[33];
                     MD5_calc(query.c_str(), query.size(), md5_val, 32);
     
-                    const static std::string default_host = "http://m.baidu.com/s?word=";
+                    std::string default_host = FLAGS_CLIENT_default_host;
                     std::string url = default_host+query;
                     std::string userdata = "0 " + std::string((char*)md5_val, 32) ;
                     std::cout<<query<<" userdata:"<<userdata<<std::endl;
@@ -114,9 +118,6 @@ void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper>& client
             memmove(buf, begin, p-begin);
     }
 }
-
-DEFINE_string(CLIENT_server_addrs, "localhost:9090", "");
-DEFINE_string(CLIENT_query_file, "query.txt", "");
 
 int main(int argc, char** argv) {
     google::ParseCommandLineFlags(&argc, &argv, true);

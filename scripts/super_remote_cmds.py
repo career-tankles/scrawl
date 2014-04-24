@@ -18,7 +18,7 @@ N8_rsa_enter_passphrase = '.*Enter passphrase.*'
 N9_rsa_enter_same_passphrase = 'Enter same passphrase again'
 N10_rsa_overwrite = 'Overwrite (y/n)?'
 
-def super_execute(cmd, timeout=600):
+def super_execute(cmd, timeout=10*60*60):
     global debug_mode
     global password
     if cmd == None or len(cmd) <= 0:
