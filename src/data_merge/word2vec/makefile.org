@@ -1,0 +1,49 @@
+CC = g++
+
+NLP_DIR = ./nlp
+NLP_INC_DIR = $(NLP_DIR)/include
+NLP_LIB_DIR = $(NLP_DIR)/lib64
+
+BASE_DIR = /data/xunwu/xunwu/common/base
+BASE_INC_DIR = $(BASE_DIR)/include
+BASE_LIB_DIR = $(BASE_DIR)/lib
+
+
+INCS_COMMON = -I$(NLP_INC_DIR) -I$(BASE_INC_DIR)
+              
+LIBS_COMMON = -L$(NLP_LIB_DIR) -lnlpanalysis -lsynonym -lsegwords -lutility \
+              -ldictEncode -lsentencestructure -lQueryClassify \
+			  -L./nlp/lib
+
+CFLAGS = -lm -pthread -g -O2 -march=native -Wall -funroll-loops -Wno-unused-result 
+CFLAGS_D = -lm -pthread -g -march=native -Wall -funroll-loops -Wno-unused-result 
+
+all: pretreatment pretreatment_debug word2vec word2vec_debug \
+	word2phrase distance word-analogy compute-accuracy similarity similarity_debug
+
+pretreatment : pre_treatment.cpp
+	$(CC) pre_treatment.cpp -o  pretreatment -g -O2  -I$(NLP_INC_DIR) $(LIBS_COMMON)
+pretreatment_debug : pre_treatment.cpp
+	$(CC) pre_treatment.cpp -o  pretreatment_debug  -g  -I$(NLP_INC_DIR) $(LIBS_COMMON)
+word2vec : word2vec.c
+	$(CC) word2vec.c -o word2vec $(CFLAGS)
+word2vec_debug : word2vec.c
+	$(CC) word2vec.c -o word2vec_debug $(CFLAGS_D)
+word2phrase : word2phrase.c
+	$(CC) word2phrase.c -o word2phrase $(CFLAGS)
+distance : distance.c
+	$(CC) distance.c -o distance $(CFLAGS)
+word-analogy : word-analogy.c
+	$(CC) word-analogy.c -o word-analogy $(CFLAGS)
+compute-accuracy : compute-accuracy.c
+	$(CC) compute-accuracy.c -o compute-accuracy $(CFLAGS)
+	chmod +x *.sh
+	
+similarity : similarity_calculation.cpp
+	$(CC) similarity_calculation.cpp -o  similarity -g -O2  $(INCS_COMMON) $(LIBS_COMMON)
+similarity_debug : similarity_calculation.cpp
+	$(CC) similarity_calculation.cpp -o  similarity_debug  -g  $(INCS_COMMON) $(LIBS_COMMON)
+
+clean:
+	rm -rf pretreatment pretreatment_debug word2vec word2vec_debug \
+	word2phrase distance word-analogy compute-accuracy  similarity similarity_debug

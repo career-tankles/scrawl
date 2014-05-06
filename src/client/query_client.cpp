@@ -73,7 +73,7 @@ void load_query(std::string file, boost::shared_ptr<ThriftClientWrapper>& client
                 if(strncmp(query.c_str(), "http://", strlen("http://")) != 0)
                 {
                     unsigned char md5_val[33];
-                    MD5_calc(query.c_str(), query.size(), md5_val, 32);
+                    MD5_calc(query.c_str(), query.size(), md5_val, 33);
     
                     std::string default_host = FLAGS_CLIENT_default_host;
                     std::string url = default_host+query;

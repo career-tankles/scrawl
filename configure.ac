@@ -21,6 +21,8 @@ AC_CONFIG_FILES([
     src/spider/Makefile
     src/client/Makefile
     src/extractor/Makefile
+    src/data_merge/Makefile
+    src/data_merge/word2vec/Makefile
     scripts/Makefile
     config/Makefile
     test/Makefile

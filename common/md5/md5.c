@@ -199,7 +199,7 @@ int MD5_calc(const void* data, size_t data_len, unsigned char md5_val[32], size_
     MD5Update(&md5,(unsigned char*)data,data_len);
     MD5Final(&md5,decrypt);
 
-    int i, offset = 0;
+    int i=0, offset = 0;
     for(i=0; i<sizeof(decrypt) && offset<l; i++) {
         offset += snprintf(md5_val+offset, l-offset, "%02x", decrypt[i]);
     }
