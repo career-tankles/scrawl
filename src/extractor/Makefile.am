@@ -33,7 +33,7 @@ page_extractor_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
                        $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                        $(top_dir)/common/http_parser/libHttpParser.a 
 
-spider_service_extractor_SOURCES = spider_service_main.cpp
+spider_service_extractor_SOURCES = spider_service_extractor.cpp
 spider_service_extractor_LDADD = $(top_dir)/common/uri/liburi.a   \
 								 $(top_dir)/common/cJSON/libcJSON.a   \
 					   			 $(top_dir)/common/base64/libbase64.a \

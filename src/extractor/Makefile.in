@@ -57,7 +57,8 @@ page_extractor_OBJECTS = $(am_page_extractor_OBJECTS)
 page_extractor_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
 	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
 	$(top_dir)/common/http_parser/libHttpParser.a
-am_spider_service_extractor_OBJECTS = spider_service_main.$(OBJEXT)
+am_spider_service_extractor_OBJECTS =  \
+	spider_service_extractor.$(OBJEXT)
 spider_service_extractor_OBJECTS =  \
 	$(am_spider_service_extractor_OBJECTS)
 spider_service_extractor_DEPENDENCIES =  \
@@ -182,7 +183,7 @@ page_extractor_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
                        $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
                        $(top_dir)/common/http_parser/libHttpParser.a 
 
-spider_service_extractor_SOURCES = spider_service_main.cpp
+spider_service_extractor_SOURCES = spider_service_extractor.cpp
 spider_service_extractor_LDADD = $(top_dir)/common/uri/liburi.a   \
 								 $(top_dir)/common/cJSON/libcJSON.a   \
 					   			 $(top_dir)/common/base64/libbase64.a \
@@ -267,7 +268,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg_tpl_t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/page_extractor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spider_service_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spider_service_extractor.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
