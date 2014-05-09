@@ -1,7 +1,7 @@
 
 top_dir = ../../..
 
-AM_CPPFLAGS = -I. \
+AM_CPPFLAGS = -g -I. \
 			  -I${top_dir}/common/nlp/include
 
 LIBS = -L. \

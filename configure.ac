@@ -14,6 +14,7 @@ AC_CONFIG_FILES([
     common/utils/Makefile
     common/http_parser/Makefile
     common/cJSON/Makefile
+    common/base64/Makefile
     common/xpath/Makefile
     common/xpath/pugixml-1.4/Makefile
     src/Makefile

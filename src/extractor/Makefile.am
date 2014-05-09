@@ -3,6 +3,8 @@ top_dir = ../..
 
 AM_CPPFLAGS = -g \
            -I$(top_dir)/common \
+           -I$(top_dir)/common/uri \
+           -I$(top_dir)/common/base64 \
            -I$(top_dir)/common/utils \
            -I$(top_dir)/common/cJSON \
            -I$(top_dir)/common/xpath/pugixml-1.4 \
@@ -25,12 +27,17 @@ LIBS = -L. \
 #                    $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
 #                    $(top_dir)/common/http_parser/libHttpParser.a 
 #
-bin_PROGRAMS = page_extractor
+bin_PROGRAMS = page_extractor spider_service_extractor
 page_extractor_SOURCES = page_extractor.cpp
 page_extractor_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
-                    $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-                    $(top_dir)/common/http_parser/libHttpParser.a 
+                       $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+                       $(top_dir)/common/http_parser/libHttpParser.a 
 
+spider_service_extractor_SOURCES = spider_service_main.cpp
+spider_service_extractor_LDADD = $(top_dir)/common/uri/liburi.a   \
+								 $(top_dir)/common/cJSON/libcJSON.a   \
+					   			 $(top_dir)/common/base64/libbase64.a \
+					   			 $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a
 
 noinst_PROGRAMS = cfg_tpl_t
 cfg_tpl_t_SOURCES = cfg_tpl_t.cpp

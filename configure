@@ -3375,7 +3375,7 @@ fi
 
           ac_config_headers="$ac_config_headers config.h"
 
-                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile common/Makefile common/md5/Makefile common/uri/Makefile common/utils/Makefile common/http_parser/Makefile common/cJSON/Makefile common/xpath/Makefile common/xpath/pugixml-1.4/Makefile src/Makefile src/thrift/Makefile src/spider/Makefile src/client/Makefile src/extractor/Makefile src/data_merge/Makefile src/data_merge/word2vec/Makefile scripts/Makefile config/Makefile test/Makefile"
+                                                                                                                                                                                                        ac_config_files="$ac_config_files Makefile common/Makefile common/md5/Makefile common/uri/Makefile common/utils/Makefile common/http_parser/Makefile common/cJSON/Makefile common/base64/Makefile common/xpath/Makefile common/xpath/pugixml-1.4/Makefile src/Makefile src/thrift/Makefile src/spider/Makefile src/client/Makefile src/extractor/Makefile src/data_merge/Makefile src/data_merge/word2vec/Makefile scripts/Makefile config/Makefile test/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3940,6 +3940,7 @@ do
   "common/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/utils/Makefile" ;;
   "common/http_parser/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/http_parser/Makefile" ;;
   "common/cJSON/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/cJSON/Makefile" ;;
+  "common/base64/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/base64/Makefile" ;;
   "common/xpath/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/xpath/Makefile" ;;
   "common/xpath/pugixml-1.4/Makefile" ) CONFIG_FILES="$CONFIG_FILES common/xpath/pugixml-1.4/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;

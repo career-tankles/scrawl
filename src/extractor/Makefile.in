@@ -34,7 +34,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = page_extractor$(EXEEXT)
+bin_PROGRAMS = page_extractor$(EXEEXT) \
+	spider_service_extractor$(EXEEXT)
 noinst_PROGRAMS = cfg_tpl_t$(EXEEXT)
 subdir = src/extractor
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -56,6 +57,14 @@ page_extractor_OBJECTS = $(am_page_extractor_OBJECTS)
 page_extractor_DEPENDENCIES = $(top_dir)/common/cJSON/libcJSON.a \
 	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
 	$(top_dir)/common/http_parser/libHttpParser.a
+am_spider_service_extractor_OBJECTS = spider_service_main.$(OBJEXT)
+spider_service_extractor_OBJECTS =  \
+	$(am_spider_service_extractor_OBJECTS)
+spider_service_extractor_DEPENDENCIES =  \
+	$(top_dir)/common/uri/liburi.a \
+	$(top_dir)/common/cJSON/libcJSON.a \
+	$(top_dir)/common/base64/libbase64.a \
+	$(top_dir)/common/xpath/pugixml-1.4/libpugixml.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -64,8 +73,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(cfg_tpl_t_SOURCES) $(page_extractor_SOURCES)
-DIST_SOURCES = $(cfg_tpl_t_SOURCES) $(page_extractor_SOURCES)
+SOURCES = $(cfg_tpl_t_SOURCES) $(page_extractor_SOURCES) \
+	$(spider_service_extractor_SOURCES)
+DIST_SOURCES = $(cfg_tpl_t_SOURCES) $(page_extractor_SOURCES) \
+	$(spider_service_extractor_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -154,6 +165,8 @@ target_alias = @target_alias@
 top_dir = ../..
 AM_CPPFLAGS = -g \
            -I$(top_dir)/common \
+           -I$(top_dir)/common/uri \
+           -I$(top_dir)/common/base64 \
            -I$(top_dir)/common/utils \
            -I$(top_dir)/common/cJSON \
            -I$(top_dir)/common/xpath/pugixml-1.4 \
@@ -166,8 +179,14 @@ AM_CPPFLAGS = -g \
 
 page_extractor_SOURCES = page_extractor.cpp
 page_extractor_LDADD = $(top_dir)/common/cJSON/libcJSON.a  \
-                    $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
-                    $(top_dir)/common/http_parser/libHttpParser.a 
+                       $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a \
+                       $(top_dir)/common/http_parser/libHttpParser.a 
+
+spider_service_extractor_SOURCES = spider_service_main.cpp
+spider_service_extractor_LDADD = $(top_dir)/common/uri/liburi.a   \
+								 $(top_dir)/common/cJSON/libcJSON.a   \
+					   			 $(top_dir)/common/base64/libbase64.a \
+					   			 $(top_dir)/common/xpath/pugixml-1.4/libpugixml.a
 
 cfg_tpl_t_SOURCES = cfg_tpl_t.cpp
 cfg_tpl_t_LDADD = $(top_dir)/common/cJSON/libcJSON.a 
@@ -236,6 +255,9 @@ cfg_tpl_t$(EXEEXT): $(cfg_tpl_t_OBJECTS) $(cfg_tpl_t_DEPENDENCIES)
 page_extractor$(EXEEXT): $(page_extractor_OBJECTS) $(page_extractor_DEPENDENCIES) 
 	@rm -f page_extractor$(EXEEXT)
 	$(CXXLINK) $(page_extractor_LDFLAGS) $(page_extractor_OBJECTS) $(page_extractor_LDADD) $(LIBS)
+spider_service_extractor$(EXEEXT): $(spider_service_extractor_OBJECTS) $(spider_service_extractor_DEPENDENCIES) 
+	@rm -f spider_service_extractor$(EXEEXT)
+	$(CXXLINK) $(spider_service_extractor_LDFLAGS) $(spider_service_extractor_OBJECTS) $(spider_service_extractor_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -245,6 +267,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg_tpl_t.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/page_extractor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spider_service_main.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

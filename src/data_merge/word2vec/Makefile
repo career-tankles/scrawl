@@ -184,7 +184,7 @@ sharedstatedir = ${prefix}/com
 sysconfdir = ${prefix}/etc
 target_alias = 
 top_dir = ../../..
-AM_CPPFLAGS = -I. \
+AM_CPPFLAGS = -g -I. \
 			  -I${top_dir}/common/nlp/include
 
 noinst_LIBRARIES = libword2vec.a

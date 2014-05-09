@@ -290,15 +290,21 @@ int parse_baidu_search_list_json(std::string input_json_file, std::string output
             }
             //std::cout<<cJSON_Print(jroot)<<std::endl;
             std::string query("");
-            std::string out_json_str;
-            int ret = cal_baidu_sim(query, jroot);
-            if(ret == 0) {
-                // 计算searcher的search结果的相似度
-                ret = cal_searcher_sim(query, jroot);
-                std::string out_json_str = cJSON_PrintUnformatted(jroot);
-                LOG(INFO)<<"json_result:"<<out_json_str;
-                io_append(outfd, out_json_str);
-                io_append(outfd, "\n", 1);
+            try {
+                //std::cout<<cJSON_Print(jroot)<<std::endl;
+                std::string out_json_str;
+                int ret = cal_baidu_sim(query, jroot);
+                if(ret == 0) {
+                    // 计算searcher的search结果的相似度
+                    ret = cal_searcher_sim(query, jroot);
+                    std::string out_json_str = cJSON_PrintUnformatted(jroot);
+                    LOG(INFO)<<"json_result:"<<out_json_str;
+                    io_append(outfd, out_json_str);
+                    io_append(outfd, "\n", 1);
+                }
+            }catch(...)
+            {
+                LOG(ERROR)<<"Exception: "<<query;
             }
 
             records ++;
@@ -320,7 +326,7 @@ int parse_baidu_search_list_json(std::string input_json_file, std::string output
 int main(int argc, char** argv)
 {
     if(argc != 5) {
-        fprintf(stderr, "Usage: %s <dict> <model.bin> <search_list_file> <out_file>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <dict_dir> <model.bin> <search_list_file> <out_file>\n", argv[0]);
         return 1;
     }
     const char* dict = argv[1];
