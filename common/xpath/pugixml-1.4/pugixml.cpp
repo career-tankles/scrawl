@@ -2597,7 +2597,7 @@ PUGI__NS_BEGIN
                                                 PUGI__THROW_ERROR(status_bad_attribute, s);
                     
                                             }
-										} else if('0' <= *s && *s <= '9') {
+										} else if('0' <= *s && *s <= '9' || 'a' <= *s && *s <= 'z' || 'A' <= *s && *s <= 'Z') {
                                             a->value = s;
 									        PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol)); // Scan for a terminator.
 											if (!s) { fprintf(stderr, "status_bad_attribute DDDD-2222\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
@@ -2611,10 +2611,11 @@ PUGI__NS_BEGIN
                                             }
 
                                         } 
-                                        else if(*s == '{' || *s == '(') {
-                                            // skip '{}'
+                                        else if(*s == '{' || *s == '(' || *s == '[') {
+                                            // skip '={xx}' or '=(xx)', just like json obj or json array
                                             char endch = '}';
                                             if(*s == '(') endch = ')';
+                                            if(*s == '[') endch = ']';
                                             s ++;
                                             int _n_ = 1;
                                             while(s && *s != '\0' && _n_ > 0) {
@@ -2626,9 +2627,13 @@ PUGI__NS_BEGIN
                                             fprintf(stderr, "status_bad_attribute AAA %s\n", std::string(s, 20).c_str());
                                             PUGI__THROW_ERROR(status_bad_attribute, s);
                                         }
-									}
-									else {
-                                        fprintf(stderr, "status_bad_attribute BBB %s\n", std::string(s, 20).c_str());
+									} else if(ch == ' ' || ch == '>') {  // added by wangfengliang, resolved such as <option value='xxx' selected>xxxx</option>
+                                        fprintf(stderr, "status_bad_attribute bugfix single attr: '%c' '%s'\n", ch, std::string(s, 20).c_str());
+                                        break;
+                                    } else if('a' <= ch && ch <= 'z') { // added by wangfengliang, resolved such as <option selected value='xx'>xxxx</option>
+                                        continue;
+									} else {
+                                        fprintf(stderr, "status_bad_attribute BBB '%c' '%s'\n", ch, std::string(s, 20).c_str());
                                         PUGI__THROW_ERROR(status_bad_attribute, s);
                                     }
 								}
@@ -2664,8 +2669,10 @@ PUGI__NS_BEGIN
 								}
                                 else if(*s == ';') {
                                     ++s;
-                                }
-								else {
+                                } else if (*s == '"') {//added by wangfengliang
+                                    // <textarea id="comment" name="commentArea" cols="80" rows="10" "></textarea>
+                                    ++s;
+								}else {
                                     fprintf(stderr, "status_bad_start_element BBB: %s\n", std::string(s, 20).c_str());
                                     PUGI__THROW_ERROR(status_bad_start_element, s);
                                 }
@@ -2708,7 +2715,7 @@ PUGI__NS_BEGIN
 						char_t* name = cursor->name;
 						if (!name) {
                             fprintf(stderr, "status_end_element_mismatch AAA: %s\n", std::string(s, 20).c_str());
-                            PUGI__THROW_ERROR(status_end_element_mismatch, s);
+                            PUGI__THROW_ERROR(status_end_element_mismatch, s); // TODO: case for soft.3g.cn
                         }
 						
 						while (PUGI__IS_CHARTYPE(*s, ct_symbol))

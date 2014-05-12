@@ -21,13 +21,16 @@ static int load(const char* file, std::string& data) {
 
     int n = 0, len = 0;
     char buf[1024*1024];
-    while((n=read(fd, buf+len, sizeof(buf)-len-1)) > 0) {
-        len += n;
+    //while((n=read(fd, buf+len, sizeof(buf)-len-1)) > 0) {
+    //    len += n;
+    //}
+    while((n=read(fd, buf, sizeof(buf)-1)) > 0) {
+        data += std::string(buf, n);
     }
     close(fd);
 
-    buf[len] = '\0';
-    data = std::string(buf, len);
+    //buf[len] = '\0';
+    //data = std::string(buf, len);
     return 0;
 }
 

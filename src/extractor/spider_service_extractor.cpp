@@ -75,6 +75,7 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
     std::string host = uri.host(); // TODO: parse host from url
     if(host.empty()) return -1;
     struct cfg_tpl_host& c = tpls[host];
+    fprintf(stderr, "HOST: %s\n", host.c_str());
 
     pugi::xml_document doc;
     pugi::xml_parse_result parse_res = doc.load(content);
@@ -184,8 +185,9 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
                 cJSON_AddStringToObject(jnew_root, "host", host.c_str());
                 cJSON_AddStringToObject(jnew_root, "url", url.c_str());
                 cJSON_AddItemToObject(jnew_root, "results", jnew_results);
-                //std::cout<<cJSON_Print(jnew_root)<<std::endl;
+                std::cout<<cJSON_Print(jnew_root)<<std::endl;
                 out_json_str = cJSON_PrintUnformatted(jnew_root);
+                //out_json_str = cJSON_Print(jnew_root);
                 cJSON_Delete(jnew_root);
                 return 0;
             } else {
@@ -288,7 +290,8 @@ static void spider_data_parser(char* data, size_t len, void* args = NULL)
 }
 
 DEFINE_string(EXTRACTOR_input_tpls_file, "tpls.conf", "");
-DEFINE_string(EXTRACTOR_input_format, "JSON", "");
+DEFINE_string(EXTRACTOR_input_format, "SPIDER_SERVICE_JSON", "");
+DEFINE_string(EXTRACTOR_URL, "", "need when EXTRACTOR_input_format==HTML");
 DEFINE_string(EXTRACTOR_input_file, "input.json", "");
 DEFINE_string(EXTRACTOR_output_file, "output.json", "");
 
@@ -311,13 +314,32 @@ int main(int argc, char** argv)
     }
 
     // 解析数据
-    if(FLAGS_EXTRACTOR_input_format == "JSON") {
+    if(FLAGS_EXTRACTOR_input_format == "SPIDER_SERVICE_JSON") {
         cb_param p ;
         p.tpls = &maps_tpls; 
         p.input_file = FLAGS_EXTRACTOR_input_file;
         p.output_file = FLAGS_EXTRACTOR_output_file;
         p.output_fd = outfd;
         load_file(FLAGS_EXTRACTOR_input_file.c_str(), spider_data_parser, (void*)&p);
+    } else if(FLAGS_EXTRACTOR_input_format == "HTML") {    // 单个html页面
+        if(FLAGS_EXTRACTOR_URL.empty()) {
+            LOG(INFO)<<"EXTRACTOR_URL is needed when input_format==HTML";
+            return -3;
+        }
+        std::string content;
+        ret = load(FLAGS_EXTRACTOR_input_file.c_str(), content);
+        assert(ret == 0);
+        std::string out_json_str;
+        ret = _extract_data_(0, FLAGS_EXTRACTOR_URL, content.c_str(), maps_tpls, out_json_str);
+        std::cout<<out_json_str<<std::endl;
+        if(ret == 0 && out_json_str.size() > 0) {
+            io_append(outfd, out_json_str);
+            io_append(outfd, "\n", 1);
+        }
+    }
+
+    if(outfd != -1) {
+        close(outfd);
     }
 }
 
