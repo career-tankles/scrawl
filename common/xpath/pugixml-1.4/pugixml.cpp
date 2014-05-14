@@ -2501,17 +2501,11 @@ PUGI__NS_BEGIN
                                 if(_n_ <= 0) break;
                                 s++;
                             }
-				            //PUGI__SCANFOR(strncmp(s, "</script>", strlen("</script>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
                             if(s && *s != '\0')
                                 s += strlen("</script>");
-                            ///fprintf(stderr, "SKIP script %s   %s\n", std::string(t_s-1, s-t_s+1).c_str(), std::string(s, 80).c_str());
+                            //fprintf(stderr, "SKIP script %s   %s\n", std::string(t_s-1, s-t_s+1).c_str(), std::string(s, 80).c_str());
                             continue;
                         } else if (strncmp(s, "style", strlen("style")) == 0) {
-                            //char_t* t_s = s;
-				            //PUGI__SCANFOR(strncmp(s, "</style>", strlen("</style>")) == 0); // no need for ENDSWITH because ?> can't terminate proper doctype
-                            //if(s && *s != '\0')
-                            //    s += strlen("</style>");
-                            //fprintf(stderr, "SKIP stype %s   %s   %d   %s\n", std::string(t_s-1, 20).c_str(), std::string(s-9, 20).c_str(), s-t_s, std::string(s, 20).c_str());
                             char_t* t_s = s;
                             s += strlen("style");
                             int _n_ = 1;
@@ -2525,7 +2519,7 @@ PUGI__NS_BEGIN
                             }
                             if(s && *s != '\0')
                                 s += strlen("</style>");
-                            ///fprintf(stderr, "SKIP style   %s   %s\n", std::string(t_s-1, s-t_s+1).c_str(), std::string(s, 80).c_str());
+                            //fprintf(stderr, "SKIP style   %s   %s\n", std::string(t_s-1, s-t_s+1).c_str(), std::string(s, 80).c_str());
  
                             continue;
                         }
@@ -2597,9 +2591,15 @@ PUGI__NS_BEGIN
                                                 PUGI__THROW_ERROR(status_bad_attribute, s);
                     
                                             }
-										} else if('0' <= *s && *s <= '9' || 'a' <= *s && *s <= 'z' || 'A' <= *s && *s <= 'Z') {
+										} else if('0' <= *s && *s <= '9' || 'a' <= *s && *s <= 'z' || 'A' <= *s && *s <= 'Z' || *s == '_' || *s == '/' || *s == '?') { 
+                                            // <a href=?gameid=12668&f=6>6</a>
+                                            // <a href=/GetAPK.asp?gameid=12668>立即下载(104470K)</a>
+                                            // <a href=game.asp>游戏</a>
                                             a->value = s;
-									        PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol)); // Scan for a terminator.
+									        //PUGI__SCANWHILE(PUGI__IS_CHARTYPE(*s, ct_symbol)); // Scan for a terminator.
+		                                    //#define PUGI__SCANFOR(X)			{ while (*s != 0 && !(X)) ++s; }
+		                                    PUGI__SCANFOR((*s == ' ' || *s == '>' || *s == '\t'));
+                                            if(*s == ' ') *s = '\0';
 											if (!s) { fprintf(stderr, "status_bad_attribute DDDD-2222\n"); PUGI__THROW_ERROR(status_bad_attribute, a->value); }
 											fprintf(stderr, "status_bad_attribute DDDD-333 %s %s\n", std::string(a->value, 20).c_str(), std::string(s, 20).c_str()); 
                                             if (PUGI__IS_CHARTYPE(*s, ct_start_symbol)) {
@@ -2630,7 +2630,7 @@ PUGI__NS_BEGIN
 									} else if(ch == ' ' || ch == '>') {  // added by wangfengliang, resolved such as <option value='xxx' selected>xxxx</option>
                                         fprintf(stderr, "status_bad_attribute bugfix single attr: '%c' '%s'\n", ch, std::string(s, 20).c_str());
                                         break;
-                                    } else if('a' <= ch && ch <= 'z') { // added by wangfengliang, resolved such as <option selected value='xx'>xxxx</option>
+                                    } else if('a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z') { // added by wangfengliang, resolved such as <option selected value='xx'>xxxx</option>
                                         continue;
 									} else {
                                         fprintf(stderr, "status_bad_attribute BBB '%c' '%s'\n", ch, std::string(s, 20).c_str());
@@ -2672,7 +2672,9 @@ PUGI__NS_BEGIN
                                 } else if (*s == '"') {//added by wangfengliang
                                     // <textarea id="comment" name="commentArea" cols="80" rows="10" "></textarea>
                                     ++s;
-								}else {
+								} else {
+                                    if (*s ==' ')
+                                        fprintf(stderr, "status_bad_start_element ----bbbb---- : %s\n", std::string(s, 20).c_str());
                                     fprintf(stderr, "status_bad_start_element BBB: %s\n", std::string(s, 20).c_str());
                                     PUGI__THROW_ERROR(status_bad_start_element, s);
                                 }
@@ -2715,6 +2717,8 @@ PUGI__NS_BEGIN
 						char_t* name = cursor->name;
 						if (!name) {
                             fprintf(stderr, "status_end_element_mismatch AAA: %s\n", std::string(s, 20).c_str());
+                            if(strcmp(s, "html>") == 0)// resolve no <html> # sample: http://m.angeeks.com/appinfo.do?soft_id=10129903
+                                break; 
                             PUGI__THROW_ERROR(status_end_element_mismatch, s); // TODO: case for soft.3g.cn
                         }
 						
@@ -2765,9 +2769,12 @@ PUGI__NS_BEGIN
 						s = parse_exclamation(s, cursor, optmsk, endch);
 						if (!s) return s;
 					}
-					else if (*s == 0 && endch == '?') PUGI__THROW_ERROR(status_bad_pi, s);
-					else {
-                        fprintf(stderr, "BBBB: status_unrecognized_tag %s\n", std::string(s, 20).c_str());
+					else if (*s == 0 && endch == '?') {
+                        PUGI__THROW_ERROR(status_bad_pi, s);
+					} else {
+                        fprintf(stderr, "status_unrecognized_tag BBBB %s\n", std::string(s, 20).c_str());
+                        if(*s == '<') // added by wangfengliang, case:<a href="javascript:history.go(-1)" class="fh"><</a> 
+                            continue;
                         PUGI__THROW_ERROR(status_unrecognized_tag, s);
                     }
 				}

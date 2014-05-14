@@ -1,0 +1,25 @@
+{
+    "host": "m.apkzu.com",
+    "chains": [
+        {
+            "_name_": "m.apkzu.com",
+            "_type_": "BODY",
+            "_nodeset_xpath_": "//body",
+            "_keys_": ["name()"],
+            "_results_": [
+                {
+                    "_key_": "body",
+                    "app_name":{"_type_":"RICHTEXT", "_xpath_":"div[4]/div[1]"},
+                    "app_lang":{"_type_":"EVAL", "_xpath_":"substring-after(div[4]/div[2]/li/div[2]/p[1], '语言：')"},
+                    "app_free":{"_type_":"EVAL", "_xpath_":"substring-after(div[4]/div[2]/li/div[2]/p[2], '授权：')"},
+                    "app_download_times":{"_type_":"EVAL", "_xpath_": "substring-before(substring-after(div[4]/div[2]/li/div[2]/p[3], '下载：'), '次下载')"},
+                    "app_updatetime":{"_type_":"EVAL", "_xpath_":"div[4]/div[2]/li/div[2]/p[5]"},
+                    "app_download_url":{"_type_":"ATTR", "_xpath_":"div[5]/div[2]/a/@href"},
+                    "app_size":{"_type_":"EVAL", "_xpath_":"substring-before(substring-after(div[5]/div[2], '['), ']')"},
+                    "app_summary": {"_type_":"EVAL", "_xpath_":"div[6]/div[2]"}
+                }
+            ]
+        }
+    ]
+}
+ 

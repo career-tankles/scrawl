@@ -14,6 +14,7 @@
 #include "cJSON.h"
 #include "base64.h"
 #include "io_ops.h"
+#include "str_ops.h"
 #include "cfg_tpl.h"
 #include "URI2.h"
 #include "pugixml_macro.h"
@@ -74,6 +75,10 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
     URI2 uri(url);
     std::string host = uri.host(); // TODO: parse host from url
     if(host.empty()) return -1;
+    if(tpls.find(host) == tpls.end()) {
+        fprintf(stderr, "HOST: %s not found!\n", host.c_str());
+        return -1;
+    }
     struct cfg_tpl_host& c = tpls[host];
     fprintf(stderr, "HOST: %s\n", host.c_str());
 
@@ -168,6 +173,9 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
                         goto Next;
                     }
             
+                    // TODO: 预处理：
+                    // 1. strip(space)
+                    field_value = trim(field_value);
                     cJSON_AddStringToObject(jnew_result, field_name.c_str(), field_value.c_str());
                     LOG(INFO)<<"EXTRACTOR "<<records<<" "<<i<<" -- "<<key<<" "<<field_name<<" "<<field_type<<" "<<field_xpath<<" "<<field_value;
             
