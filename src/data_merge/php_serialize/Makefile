@@ -14,11 +14,13 @@ CXXFLAGS := -g3 -O2 -fno-strict-aliasing -Wall -Werror -fPIC \
 	-I$(HOME)/qmodule/CloudLog/include \
 	-I$(HOME)/qmodule/febird/include \
 	-I$(HOME)/qmodule/febird-0.1/include \
-	-I/usr/include/boost141
+	-I/usr/include/boost141 \
+	-I../../../libs/boost-1.50.0/include
 
 LDFLAGS := -pthread \
 			-L /home/s/lib \
-			-L/usr/lib64/boost141
+			-L/usr/lib64/boost141 \
+			-L../../../libs/boost-1.50.0/lib
 
 RTFLAGS := -Wl,-R/home/s/lib
 LIBS := 

@@ -14,7 +14,6 @@ AM_CPPFLAGS = -g \
            -I${top_dir}/libs/glog-0.3.3/include -I/usr/local/glog-0.3.3/include \
            -I${top_dir}/libs/gflags-1.2/include -I/usr/local/gflags-1.2/include \
            -I${top_dir}/libs/thrift-0.9.1/include -I/usr/local/thrift-0.9.1/include 
-           
 
 LIBS = -L. \
        -L${top_dir}/libs/glog-0.3.3/lib -L/usr/local/glog-0.3.3/lib -lglog \
@@ -43,4 +42,5 @@ noinst_PROGRAMS = cfg_tpl_t
 cfg_tpl_t_SOURCES = cfg_tpl_t.cpp
 cfg_tpl_t_LDADD = $(top_dir)/common/cJSON/libcJSON.a 
 
+dist_sbin_SCRIPTS = spider_service_extractor.sh
 
