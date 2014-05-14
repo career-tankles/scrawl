@@ -24,6 +24,7 @@ AC_CONFIG_FILES([
     src/extractor/Makefile
     src/data_merge/Makefile
     src/data_merge/word2vec/Makefile
+    src/query_filter/Makefile
     scripts/Makefile
     config/Makefile
     test/Makefile

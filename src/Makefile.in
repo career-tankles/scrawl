@@ -132,7 +132,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = thrift spider extractor client data_merge
+SUBDIRS = thrift spider extractor client query_filter data_merge 
 all: all-recursive
 
 .SUFFIXES:
