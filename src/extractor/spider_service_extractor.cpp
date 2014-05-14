@@ -193,9 +193,12 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
                 cJSON_AddStringToObject(jnew_root, "host", host.c_str());
                 cJSON_AddStringToObject(jnew_root, "url", url.c_str());
                 cJSON_AddItemToObject(jnew_root, "results", jnew_results);
-                std::cout<<cJSON_Print(jnew_root)<<std::endl;
-                out_json_str = cJSON_PrintUnformatted(jnew_root);
-                //out_json_str = cJSON_Print(jnew_root);
+                char* formated_out = cJSON_Print(jnew_root);
+                std::cout<<formated_out<<std::endl;
+                free(formated_out);
+                char* unformated_out = cJSON_PrintUnformatted(jnew_root);
+                out_json_str = unformated_out;
+                free(unformated_out);
                 cJSON_Delete(jnew_root);
                 return 0;
             } else {

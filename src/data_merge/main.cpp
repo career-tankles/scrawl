@@ -81,6 +81,7 @@ int cal_searcher_sim(std::string& query, std::string& json_str, cJSON* jorig_roo
             continue;
         if(strlen(jtitle->valuestring) <= 0)
             continue;
+        cJSON* jurl = cJSON_GetObjectItem(jresult, "url");
         cJSON* jsummary = cJSON_GetObjectItem(jresult, "summary");
 
         char* stitle = new char[strlen(jtitle->valuestring)+1];
@@ -91,10 +92,13 @@ int cal_searcher_sim(std::string& query, std::string& json_str, cJSON* jorig_roo
         ReplaceStr(stitle, "<em>", "");
         ReplaceStr(stitle, "</em>", "");
         std::string title(stitle);
-        delete stitle;
+        delete[] stitle;
 
         cJSON* jnew_result = cJSON_CreateObject();
-        cJSON_AddStringToObject(jnew_result, "title", jtitle->valuestring); 
+        if(jtitle && jtitle->valuestring)
+            cJSON_AddStringToObject(jnew_result, "title", jtitle->valuestring); 
+        if(jurl && jurl->valuestring)
+            cJSON_AddStringToObject(jnew_result, "url", jurl->valuestring); 
         if(jsummary && jsummary->valuestring)
             cJSON_AddStringToObject(jnew_result, "summary", jsummary->valuestring); 
 
@@ -119,6 +123,7 @@ int cal_searcher_sim(std::string& query, std::string& json_str, cJSON* jorig_roo
         }
         cJSON_AddItemToArray(jnew_results, jnew_result);
     }
+    cJSON_Delete(jroot);
 
     if(v.size() > 0) {
         // sort
@@ -169,6 +174,8 @@ int cal_searcher_sim(std::string& query, cJSON* jroot)
 
 int cal_baidu_sim(std::string& query, cJSON* jroot)
 {
+    return 0;
+
     cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
     assert(jurl);
     std::string url = jurl->valuestring;
@@ -213,11 +220,12 @@ int cal_baidu_sim(std::string& query, cJSON* jroot)
         ReplaceStr(stitle, "<em>", "");
         ReplaceStr(stitle, "</em>", "");
         std::string title(stitle);
-        delete stitle;
+        delete[] stitle;
 
         // 计算相似度
         double sim = 0;
-        int ret = calc_similarity(query, title, sim);
+        //int ret = calc_similarity(query, title, sim);
+        int ret = 0;
         if(ret == 0) {
             LOG(INFO)<<"calc_similarity "<<query<<" vs "<<title<<"="<<sim;
             cJSON_AddNumberToObject(jresult, "sim", sim); 
@@ -245,7 +253,6 @@ int cal_baidu_sim(std::string& query, cJSON* jroot)
             if(i != v.size()-1)
                 baidu_sort += ",";
         }
-
 
         unsigned char md5_val[33];
         memset(md5_val, 0, sizeof(md5_val));
@@ -288,16 +295,16 @@ int parse_baidu_search_list_json(std::string input_json_file, std::string output
                 LOG(INFO)<<"CLIENT parse "<<records<<" records";
                 break; 
             }
-            //std::cout<<cJSON_Print(jroot)<<std::endl;
             std::string query("");
             try {
-                //std::cout<<cJSON_Print(jroot)<<std::endl;
                 std::string out_json_str;
                 int ret = cal_baidu_sim(query, jroot);
                 if(ret == 0) {
                     // 计算searcher的search结果的相似度
                     ret = cal_searcher_sim(query, jroot);
-                    std::string out_json_str = cJSON_PrintUnformatted(jroot);
+                    char* out = cJSON_PrintUnformatted(jroot);
+                    std::string out_json_str = out;
+                    free(out);
                     LOG(INFO)<<"json_result:"<<out_json_str;
                     io_append(outfd, out_json_str);
                     io_append(outfd, "\n", 1);

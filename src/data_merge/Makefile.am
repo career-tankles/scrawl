@@ -1,5 +1,5 @@
 
-SUBDIRS = word2vec php_serialize
+SUBDIRS = word2vec 
 
 top_dir = ../..
 
@@ -12,6 +12,7 @@ AM_CPPFLAGS = -g \
            -I$(top_dir)/common/http_parser \
            -I$(top_dir)/common/febird/febird/include \
            -I$(top_dir)/common/nlp/include \
+           -I$(top_dir)/common/php_serialize \
            -I$(top_dir)/src/thrift \
            -I$(top_dir)/src/thrift/gen-cpp \
            -I$(top_dir)/src/data_merge/word2vec \
@@ -25,7 +26,7 @@ LIBS = -L. \
        -L$(top_dir)/common/cJSON -lcJSON  \
        -L${top_dir}/common/md5 -lmd5 \
        -L$(top_dir)/common/nlp/lib -lnlpanalysis -lsynonym -lsegwords -lutility -ldictEncode -lsentencestructure -lQueryClassify \
-	   -L$(top_dir)/src/data_merge/php_serialize -lutil_php_serialize \
+	   -L$(top_dir)/common/php_serialize -lutil_php_serialize \
        -L${top_dir}/libs/glog-0.3.3/lib -L/usr/local/glog-0.3.3/lib -lglog \
        -L${top_dir}/libs/gflags-1.2/lib -L/usr/local/gflags-1.2/lib -lgflags \
        -L${top_dir}/libs/boost-1.50.0/lib -L/usr/local/boost-1.50.0/lib -lgflags 

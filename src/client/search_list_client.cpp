@@ -130,8 +130,6 @@ int parse_search_list_json(std::string input_json_file, boost::shared_ptr<Thrift
                 LOG(INFO)<<"CLIENT parse "<<records<<" records";
                 break; 
             }
-            //std::cout<<cJSON_Print(jroot)<<std::endl;
-            //getchar();
             cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
             assert(jurl);
             cJSON* jhost = cJSON_GetObjectItem(jroot, "host");

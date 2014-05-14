@@ -225,7 +225,9 @@ int _res_to_str_(Res* res, std::string& s) {
     if(res->err_count != 0)
         cJSON_AddNumberToObject(jnew_root, "err_count", res->err_count);
 
-    s = cJSON_PrintUnformatted(jnew_root);
+    char* out = cJSON_PrintUnformatted(jnew_root);
+    s = out;
+    free(out);
     cJSON_Delete(jnew_root);
 
     return s.size();

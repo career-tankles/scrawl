@@ -164,8 +164,9 @@ int _extract_http_page_(std::string& host, pugi::xml_document& doc, struct cfg_t
             }
         }
         cJSON_AddItemToObject(jnew_root, "results", jnew_results);
-        //std::cout<<cJSON_Print(jnew_root)<<std::endl;
-        json_str = cJSON_PrintUnformatted(jnew_root);
+        char* tmp_out = cJSON_PrintUnformatted(jnew_root);
+        json_str = tmp_out;
+        free(tmp_out);
         cJSON_Delete(jnew_root);
         return 0;
     } else {
@@ -207,8 +208,9 @@ int _extract_data_(std::string host, const char* resp_headers, const char* resp_
                     cJSON_AddItemToArray(jnew_results, jresult);
                 }
                 cJSON_AddItemToObject(jnew_root, "results", jnew_results);
-                //std::cout<<cJSON_Print(jnew_root)<<std::endl;
-                json_str = cJSON_PrintUnformatted(jnew_root);
+                char* tmp_out = cJSON_PrintUnformatted(jnew_root);
+                json_str = tmp_out;
+                free(tmp_out);
                 cJSON_Delete(jnew_root);
 
                 LOG(ERROR)<<"EXTRACTOR _extract_headers_ finish "<<tpl_chain._name_;
@@ -315,7 +317,9 @@ int parse_http_pages(std::string input_json_file, std::map<std::string, struct c
             
             cJSON* jinfo = cJSON_GetObjectItem(obj, "info");
             if(jinfo == NULL) {
-                LOG(ERROR)<<"EXTRACTOR jinfo is null, data: "<<cJSON_Print(obj);
+                char* out = cJSON_Print(obj);
+                LOG(ERROR)<<"EXTRACTOR jinfo is null, data: "<<out;
+                free(out);
                 break;
             }
             cJSON* jurl = cJSON_GetObjectItem(jinfo, "url");
