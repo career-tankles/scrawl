@@ -174,8 +174,6 @@ int cal_searcher_sim(std::string& query, cJSON* jroot)
 
 int cal_baidu_sim(std::string& query, cJSON* jroot)
 {
-    return 0;
-
     cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
     assert(jurl);
     std::string url = jurl->valuestring;
@@ -224,8 +222,7 @@ int cal_baidu_sim(std::string& query, cJSON* jroot)
 
         // 计算相似度
         double sim = 0;
-        //int ret = calc_similarity(query, title, sim);
-        int ret = 0;
+        int ret = calc_similarity(query, title, sim);
         if(ret == 0) {
             LOG(INFO)<<"calc_similarity "<<query<<" vs "<<title<<"="<<sim;
             cJSON_AddNumberToObject(jresult, "sim", sim); 

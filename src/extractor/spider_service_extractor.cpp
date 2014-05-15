@@ -65,11 +65,9 @@ struct cb_param {
     int output_fd;
     SpiderDataEntity entity;
 };
-
 // 根据c解析模板解析http_data网页数据，生成JSON数据json_str
 // @return 0: success  <0: failed
-int _extract_data_(unsigned int records, std::string url, const char* content, std::map<std::string, struct cfg_tpl_host>& tpls, std::string& out_json_str) {
-
+static int _extract_data_(unsigned int records, std::string url, const char* content, std::map<std::string, struct cfg_tpl_host>& tpls, cJSON** out_jroot=NULL, std::string* out_json_str=NULL) {
     int ret = 0;
 
     URI2 uri(url);
@@ -173,7 +171,7 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
                         goto Next;
                     }
             
-                    // TODO: 预处理：
+                    // 预处理：
                     // 1. strip(space)
                     field_value = trim(field_value);
                     cJSON_AddStringToObject(jnew_result, field_name.c_str(), field_value.c_str());
@@ -196,10 +194,16 @@ int _extract_data_(unsigned int records, std::string url, const char* content, s
                 char* formated_out = cJSON_Print(jnew_root);
                 std::cout<<formated_out<<std::endl;
                 free(formated_out);
-                char* unformated_out = cJSON_PrintUnformatted(jnew_root);
-                out_json_str = unformated_out;
-                free(unformated_out);
-                cJSON_Delete(jnew_root);
+                if(out_json_str) {
+                    char* unformated_out = cJSON_PrintUnformatted(jnew_root);
+                    *out_json_str = unformated_out;
+                    free(unformated_out);
+                }
+                if(out_jroot) {
+                    *out_jroot = jnew_root;
+                } else {
+                    cJSON_Delete(jnew_root);
+                }
                 return 0;
             } else {
                 cJSON_Delete(jnew_results);
@@ -259,7 +263,7 @@ static void spider_data_parser(char* data, size_t len, void* args = NULL)
     if(jcontent_type) p->entity.content_type_ = jcontent_type->valuestring;
 
     cJSON* jvalues = cJSON_GetObjectItem(jroot, "value");
-    assert(cJSON_GetArraySize(jvalues) == 1);   // 当前看到的都是只有一个，如果出现多个再处理
+    if(jvalues) assert(cJSON_GetArraySize(jvalues) <= 1);   // 当前看到的都是只有一个，如果出现多个再处理
     for(int i=0; jvalues && i<cJSON_GetArraySize(jvalues); i++) 
     {
         cJSON* jvalue = cJSON_GetArrayItem(jvalues, i);
@@ -284,11 +288,21 @@ static void spider_data_parser(char* data, size_t len, void* args = NULL)
                         p->entity.content_ = std::string((char*)buf, buf_len);
                         //std::cout<<p->entity.content_<<std::endl;
                         fprintf(stderr, "url:%s\n", p->entity.url_.c_str());
-                        std::string out_json_str("");
-                        ret = _extract_data_(p->entity.records++, p->entity.url_, p->entity.content_.c_str(), *tpls, out_json_str);
-                        if(ret == 0 && out_json_str.size() > 0) {
-                            io_append(p->output_fd, out_json_str);
-                            io_append(p->output_fd, "\n", 1);
+                        cJSON* jroot = NULL;
+                        ret = _extract_data_(p->entity.records++, p->entity.url_, p->entity.content_.c_str(), *tpls, &jroot, NULL);
+                        if(ret == 0) {
+                            cJSON_AddStringToObject(jroot, "url", jurl->valuestring);
+                            cJSON_AddStringToObject(jroot, "durl", jdurl->valuestring);
+                            if(jopts)
+                                cJSON_AddStringToObject(jroot, "userdata", jopts->valuestring);
+                            //char* formated_out = cJSON_Print(jnew_root);
+                            char* unformated_out = cJSON_PrintUnformatted(jroot);
+                            std::string out_json_str(unformated_out);
+                            free(unformated_out);
+                            if(out_json_str.size() > 0) {
+                                io_append(p->output_fd, out_json_str);
+                                io_append(p->output_fd, "\n", 1);
+                            }
                         }
                     } else {
                         LOG(ERROR)<<"uncompress: unknown error.";
@@ -298,6 +312,61 @@ static void spider_data_parser(char* data, size_t len, void* args = NULL)
             }
         }
     } // endof for(int i=0; jvalues && i<cJSON_GetArraySize(jvalues); i++) 
+}
+
+static void parse_baidu_search_list(char* data, size_t len, void* args=NULL) {
+    assert(args);
+    cb_param* p = (cb_param*)args; 
+    assert(p && p->output_fd != -1);
+
+    cJSON* jroot = cJSON_Parse(data);
+    if(!jroot) {
+        fprintf(stderr, "cJSON_Parse failed!\n");
+        return ;
+    }
+    cJSON* jurl = cJSON_GetObjectItem(jroot, "url");
+    assert(jurl);
+    std::string url = jurl->valuestring;
+    URI2 uri(url);
+    std::string host = uri.host(); // TODO: parse host from url
+   
+    std::string userdata;
+    cJSON* juserdata = cJSON_GetObjectItem(jroot, "userdata");
+    if(juserdata) {
+        userdata = juserdata->valuestring;
+    }
+    if(!userdata.empty() && userdata[0] != '0') { // 存在userdata，且为百度搜索结果时才解析子url列表
+        return ;
+    }
+
+    bool has_results = false;
+    cJSON* jresults = cJSON_GetObjectItem(jroot, "results");
+    for(int i=0; jresults && i<cJSON_GetArraySize(jresults); i++) {
+        cJSON* jresult = cJSON_GetArrayItem(jresults, i);
+        cJSON* jhref = cJSON_GetObjectItem(jresult, "href");
+        if(jhref == NULL || jhref->valuestring == NULL) { 
+            continue;
+        }
+        has_results = true;
+        std::string href = jhref->valuestring;
+        if(!href.empty() && !host.empty() && strncmp(href.c_str(), "http://", strlen("http://")) != 0) {
+            if(href[0] != '/')
+                href = "/" + href;
+            href = "http://" + host + href;
+        }
+        
+        std::string out_json_str = href;
+        if(!userdata.empty()) {
+            std::string new_userdata(userdata);
+            new_userdata[0] = 'A' + i;
+            out_json_str += "\t" + new_userdata;
+        } 
+        LOG(INFO)<<"m.baidu.com list "<<i<<" "<<out_json_str;
+        io_append(p->output_fd, out_json_str);
+        io_append(p->output_fd, "\n", 1);
+    }
+
+    return ;
 }
 
 DEFINE_string(EXTRACTOR_input_tpls_file, "tpls.conf", "");
@@ -313,12 +382,7 @@ int main(int argc, char** argv)
     FLAGS_logtostderr = 1;  // 默认打印错误输出
     google::InitGoogleLogging(argv[0]);
 
-    // 加载配置
-    std::map<std::string, struct cfg_tpl_host> maps_tpls;
-    int ret = load_tpls(FLAGS_EXTRACTOR_input_tpls_file, maps_tpls) ;
-    assert(ret == 0);
-
-    int outfd = open(FLAGS_EXTRACTOR_output_file.c_str(), O_WRONLY|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO);
+   int outfd = open(FLAGS_EXTRACTOR_output_file.c_str(), O_WRONLY|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO);
     if(outfd == -1) {
         fprintf(stderr, "Error: %s %d-%s\n", FLAGS_EXTRACTOR_output_file.c_str(), errno, strerror(errno));
         return -2;
@@ -326,27 +390,51 @@ int main(int argc, char** argv)
 
     // 解析数据
     if(FLAGS_EXTRACTOR_input_format == "SPIDER_SERVICE_JSON") {
+
+        // 加载配置
+        std::map<std::string, struct cfg_tpl_host> maps_tpls;
+        int ret = load_tpls(FLAGS_EXTRACTOR_input_tpls_file, maps_tpls) ;
+        if(ret != 0) {
+            LOG(INFO)<<"EXTRACTOR load_tpls failed!";
+            return -1;
+        }
+ 
         cb_param p ;
         p.tpls = &maps_tpls; 
         p.input_file = FLAGS_EXTRACTOR_input_file;
         p.output_file = FLAGS_EXTRACTOR_output_file;
         p.output_fd = outfd;
         load_file(FLAGS_EXTRACTOR_input_file.c_str(), spider_data_parser, (void*)&p);
+
     } else if(FLAGS_EXTRACTOR_input_format == "HTML") {    // 单个html页面
         if(FLAGS_EXTRACTOR_URL.empty()) {
             LOG(INFO)<<"EXTRACTOR_URL is needed when input_format==HTML";
             return -3;
         }
+        // 加载配置
+        std::map<std::string, struct cfg_tpl_host> maps_tpls;
+        int ret = load_tpls(FLAGS_EXTRACTOR_input_tpls_file, maps_tpls) ;
+        assert(ret == 0);
+ 
         std::string content;
         ret = load(FLAGS_EXTRACTOR_input_file.c_str(), content);
         assert(ret == 0);
         std::string out_json_str;
-        ret = _extract_data_(0, FLAGS_EXTRACTOR_URL, content.c_str(), maps_tpls, out_json_str);
+        ret = _extract_data_(0, FLAGS_EXTRACTOR_URL, content.c_str(), maps_tpls, NULL, &out_json_str);
         std::cout<<out_json_str<<std::endl;
         if(ret == 0 && out_json_str.size() > 0) {
             io_append(outfd, out_json_str);
             io_append(outfd, "\n", 1);
         }
+    } else if(FLAGS_EXTRACTOR_input_format == "BAIDU_SEARCH_LIST") {
+        cb_param p ;
+        p.input_file = FLAGS_EXTRACTOR_input_file;
+        p.output_file = FLAGS_EXTRACTOR_output_file;
+        p.output_fd = outfd;
+        load_file(FLAGS_EXTRACTOR_input_file.c_str(), parse_baidu_search_list, (void*)&p);
+
+    } else {
+        LOG(INFO)<<"EXTRACTOR unknown input_format:"<<FLAGS_EXTRACTOR_input_format;
     }
 
     if(outfd != -1) {

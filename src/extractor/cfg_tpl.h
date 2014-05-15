@@ -175,7 +175,10 @@ static void print(std::vector<std::string>& v) {
 
 static int load_tpls(std::string file, std::map<std::string, struct cfg_tpl_host>& maps_tpls) {
     int fd = open(file.c_str(), O_RDONLY);
-    if(fd == -1) return -1;
+    if(fd == -1) {
+        LOG(ERROR)<<"open file failed:"<<file<<" "<<errno<<" "<<strerror(errno);
+        return -1;
+    }
     ssize_t n = 0;
     ssize_t left = 0;
     char buf[1024*1024];
